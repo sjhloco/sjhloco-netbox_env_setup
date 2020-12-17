@@ -1,5 +1,5 @@
 ################ Input variables used to test assert script error handling ################
-# Doesnt include testing lists as they casue the script to 'failfast' so would not test the objects under them
+# Doesnt include testing lists as they cause the script to 'failfast' so would not test the objects under them
 
 ###### Organisational Menu testing.  ######
 tenant:
