@@ -1,0 +1,11 @@
+manufacturer: Excel
+model: PP_Fiber_1U
+slug: pp_fib_1u
+part_number: pp_fiber_1u
+u_height: 1
+is_full_depth: False
+
+front_port:
+  - start_port: 1
+    end_port: 24
+    type: lc

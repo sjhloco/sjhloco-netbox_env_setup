@@ -1,0 +1,28 @@
+manufacturer: Generic
+model: ADSL_Homehub
+slug: homehub
+part_number: homehub
+u_height: 1
+is_full_depth: False
+power-ports:
+  - name: PSU
+    type: ita-g         # 3pin UK plug
+interfaces:
+  - name: Lan1
+    type: 1000base-t
+    mgmt_only: false
+  - name: Lan2
+    type: 1000base-t
+    mgmt_only: false
+  - name: Lan3
+    type: 1000base-t
+    mgmt_only: false
+  - name: Lan4
+    type: 1000base-t
+    mgmt_only: false
+  - name: WAN
+    type: 1000base-t
+    mgmt_only: false
+  - name: DSL
+    type: other
+    mgmt_only: false

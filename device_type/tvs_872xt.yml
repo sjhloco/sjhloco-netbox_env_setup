@@ -1,0 +1,28 @@
+manufacturer: QNAP
+model: TVS-872XT
+slug: tvs_872xt
+part_number: tvs-872xt
+u_height: 4
+is_full_depth: False
+power-ports:
+  - name: PS1
+    type: iec-60320-c16     # kettle plug
+interfaces:
+  - name: Adaptor1
+    type: 10gbase-t
+    mgmt_only: True
+  - name: Adaptor2
+    type: 1000base-t
+    mgmt_only: false
+  - name: Adaptor3
+    type: 1000base-t
+    mgmt_only: false
+  - name: Adaptor4
+    type: 10gbase-t
+    mgmt_only: false
+  - name: Thunderbolt1
+    type: other
+    mgmt_only: false
+  - name: Thunderbolt2
+    type: other
+    mgmt_only: false

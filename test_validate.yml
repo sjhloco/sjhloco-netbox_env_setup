@@ -1,0 +1,150 @@
+################ Input variables used to test assert script error handling ################
+# Doesnt include testing lists as they casue the script to 'failfast' so would not test the objects under them
+
+###### Organisational Menu testing.  ######
+tenant:
+- nam: tenant2                    # Assert Tenant has a name
+- name: tenant1                   # Assert Tenant name is unique
+- name: tenant1
+  tags: tnt1_tag                  # Assert Tenant Tag is a list
+  site:
+  - nam: site2                    # Assert Site has a name
+  - name: site1
+    time_zone: USSR/Moscow        # Assert time_zone is a valid region
+    tags: site1_tag               # Assert Site Tag is a list
+    rack_grp:
+    - nam: DC1 Floor2             # Assert Rack-Group has a name
+    - name: DC1 Floor1
+      rack:
+      - nam: DC1_FL1_A1           # Assert Rack has a name
+      - name: DC1_FL2_A1
+        height: five              # Assert Rack Height is an integrar
+        tags: rack1_tag           # Assert Rack Tag is a list
+      - name: DC1_FL3_A1
+        role: servers             # Assert the Rack-Role exists
+        tenant: tenant2           # Assert the Tenant exists
+      rack_grp:
+      - name: DC1 Floor1 Room1
+        rack:
+        - nam: DC1_FL1_RM1_A1     # Assert Rack has a name
+        - name: DC1_FL1_RM2_A1
+          role: compute           # Assert the Rack-Role exists
+
+rack_role:
+  - {slug: network, color: aa1409, descr: Network equipment}            # Assert Rack-Role has a name
+  - {name: patching, slug: patching, color: c0c0c0, descr: Patch Panels for linking floors}
+
+###### Devices Menu testing ######
+manufacturer:
+- nam: Juniper                        # Assert Manufacturer has a name
+- name: Cisco
+  platform:
+    - {slug: asa, driver: asa }       # Assert Platform has a name
+    - {name: IOS-XR, slug: ios_xr, driver: iosxr }
+  device_type: {}                     # Assert Device Type is a list
+- name: Cisco                         # Assert Duplicate name
+
+device_role:
+  - {slug: fw, color: f44336}         # Assert Device Role has a name
+  - {name: router, vm_role: 'True'}   # Assert VM Role is a boolean
+  - {name: router}                    # Assert Duplicate name
+
+###### IPAM Menu testing ######
+rir:
+  - nam: ARIN                         # Assert RIR has a name
+  - name: RFC1918                         # Assert duplicate RIR name
+  - name: RFC1918
+    is_private: Tru                   # Assert is a boolean
+    ranges:
+    - {descr: Class A private address range, tags: rir_tag1 }                 # Assert each range has a prefix
+    - {prefix: 172.16.0.0/33, descr: Class B private address range}           # Assert prefix is valid IPv4 address & mask
+
+role:
+- ame: npe                            # Assert Role has a name
+- name: tst                           # Assert Role has a site
+- name: prod
+  site:
+  - nme: site1                        # Assert Site has a name
+  - name: site2                       # Assert Site is already defined in the Organization dictionary
+    tags: vl_pfx_tag                  # Assert VLAN/Prefix Tags are a list
+    vlan_grp:
+    - nam: site1 vlan group           # Assert VLAN group has a name
+    - name: site1 vl group
+      tenant: tenant10                # Assert Tenant is already defined in the Organization dictionary
+      tags: site1_vl_grp_tag          # Assert VLAN Tags are a list
+      vlan:
+      - ame: MGMT_VL5                 # Assert VLAN has a name
+      - name: COMP_VL10               # Assert VLAN has a VLAN number
+      - name: DUP_VL9                 # Assert duplicate VLAN name
+        id: 9                         # Assert duplicate VLAN number
+      - name: DUP_VL9                 # Assert VLAN has a VLAN number
+        id: 9
+      - name: DATA_VL20
+        id: twenty                    # Assert VLAN number is an integrar
+        tenant: tenant20              # Assert Tenant is already defined in the Organization dictionary
+        tags: vl_tag                  # Assert VLAN Tag is a list
+      vrf:
+      - nme: GLOBAL                   # Assert VLAN has a name
+      - name: GLOBAL                  # Assert duplicate VRF name
+        prefix:
+        - px: 20.10.10.0/24           # Assert prefix has a pfx
+        - pfx: 10.10.99.0/24          # Assert duplicate prefixes
+        - pfx: 10.10.99.0/24
+      - name: GLOBAL
+        rd: 65101:1                   # Assert RD is a string (so if decimal in quotes (' '))
+        unique: Fals                  # Assert is a boolean
+        tenant: tenant1               # Assert Tenant is already defined in the Organization dictionary
+        tags: vrf_tag                 # Assert Tag is a list
+        prefix:
+        - pfx: 10.10.990.0/24         # Assert prefix is valid IPv4 address & mask
+          vl: 10                      # Assert VLAN is already defined in under the VLAN group
+          pool: Tru                   # Assert is a boolean
+          tenant: tenant2             # Assert Tenant is already defined in the Organization dictionary
+          tags: pfx_tag               # Assert Tag is a list
+    vrf:
+    - nam: AZU_NT_VNET1               # Assert VLAN has a name
+    - name: AZU_NT_VNET2
+      prefix:
+      - pfx: 10.20.10.0/33            # Assert prefix is valid IPv4 address & mask
+      - pfx: 10.20.30.0/24            # Assert duplicate prefixes
+        tags: vrf_tag1                # Assert Tag is a list
+      - pfx: 10.20.30.0/24
+
+circuit_type:
+  - { name: Fibre Broadband, slug: fibre_bband, descr: Fibre broadband }
+  - { slug: car_eth }               # Assert each Circuit Type has a name
+
+provider:
+- nam: GTT                          # Assert Provider has a name
+- name: BT
+  asn: ten                          # Assert is an intergar
+  tags: pvdr_tag                    # Assert Tag is a list
+  circuit:
+    - ci: BT1-666                   # Assert has a value
+    - cid: BT1-666
+      type: Fibre Broadban          # Assert Circuit Type is already defined
+      tenant: tenant30              # Assert Tenant is already defined in the Organization dictionary
+      commit_rate: 100000           # Assert is an intergar
+      tags: cid_tag                 # Assert Tag is a list
+    - cid: BT1-666                  # Assert no duplicate circui IDs
+- name: Colt                        # Assert duplicate circuits
+
+cluster_group:
+  - { name: Azure UK West, slug: az_ukwest, descr: Azure UK West environment }
+  - { slug: az_ger }              # Assert each Circuit Group has a name
+
+cluster_type:
+  - nam: vSphere                  # Assert Provider has a name
+  - name: Azure
+    site: azure_usa               # Assert Site is already defined in the Organization dictionary
+    tenant: tenant30              # Assert Tenant is already defined in the Organization dictionary
+    group: Azure USA              # Assert Cluster Group exists
+    tags: cltr_type_tag           # Assert Tag is a list
+    cluster:
+    - nam: AZURE VSE              # Assert Cluster has a name
+    - name: AZURE VSE1
+      group: Azure Germany        # Assert Cluster Group exists
+      site: azure_ger             # Assert Site is already defined in the Organization dictionary
+      tenant: tenant40            # Assert Tenant is already defined in the Organization dictionary
+      tags: cltr_tag              # Assert Tag is a list
+    - name: AZURE VSE1            # Assert duplicate clusters

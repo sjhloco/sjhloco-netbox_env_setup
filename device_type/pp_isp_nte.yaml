@@ -1,0 +1,14 @@
+manufacturer: Excel
+model: PP_ISP_NTE
+slug: pp_isp
+part_number: pp_isp_nte
+u_height: 1
+is_full_depth: False
+
+front_port:           # Automatically creates the rear ports with 1to1 mapping
+  - start_port: 1
+    end_port: 12
+    type: lc
+  - start_port: 13
+    end_port: 24
+    type: sc

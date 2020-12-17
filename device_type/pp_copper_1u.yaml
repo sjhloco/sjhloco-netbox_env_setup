@@ -1,0 +1,11 @@
+manufacturer: Excel
+model: PP_Copper_1U
+slug: pp_cop_1u
+part_number: pp_copper_1u
+u_height: 1
+is_full_depth: False
+
+front_port:
+  - start_port: 1
+    end_port: 24
+    type: 110-punch
