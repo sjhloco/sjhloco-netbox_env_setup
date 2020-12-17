@@ -1,13 +1,14 @@
 ########################################## INFO ##########################################
 # This example shows all the options that are possible
-# Mandatory dictionaires (MAN) must be defined and Optional (OPT) are at your discretion
+# Mandatory dictionaires must be defined and Optional are at your discretion
 # Most dictionaires can have a description ('descr'), this is always optional
 # Slug is optional, if not defined it is automatically generated from the name, any whitespaces are replaced with _
 # Only tenant, site, rack_grp, device_role, manufacturer, vlan_grp and cluster_type have slug.
 
+
 ########################################## ORGANISATION ##########################################
 ## ORG: Each customer is a tenant with its associated sites (optional). Sites hold rack-groups (optional) which in turn hold racks
-tenant:                              # Mandatory - List of tenants
+tenant:                               # Mandatory - List of tenants
 - name: tenant1                       # Mandatory - Name of the tenant
   slug: tenant1                       # Optional
   descr: Example tenant               # Optional
