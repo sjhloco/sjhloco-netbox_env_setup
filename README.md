@@ -135,7 +135,7 @@ os.environ['REQUESTS_CA_BUNDLE'] = '/Users/user1/Documents/nbox_py_scripts/myCA.
 
 ## Usage
 
-Before running ***nbox_env_setup.py*** it is recommended to use ***input_validate.py*** to verify the contents of input YAML file. It is an offline script (doesnt connect to NetBox) that verifies things such as:
+Before running ***nbox_env_setup.py*** it is recommended to use ***input_validate.py*** to verify the contents of input YAML file. It is an offline script (doesnt connect to NetBox) that verifies things such as:\
 -All parent dictionaries (*tenant, manufacturer, rir, role, crt_type, provider, cluster_type*) are present and the key is a list (can be an empty list if not used)\
 -All mandatory dictionaires are present\
 -All Dictionary keys that are meant to be a list, integrar, boolean or IPv4 address are of the correct format\
