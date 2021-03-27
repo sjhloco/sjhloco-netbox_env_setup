@@ -137,17 +137,15 @@ provider:
 ########################################## Virtualization ##########################################
 ## CLUSTER GROUP: Can be used to add optionl grouping, for example region or a client
 cluster_group:
-  - { name: AWS UK West, slug: aws_ukwest }
-  - { name: Azure UK West, slug: az_ukwest }
+  - { name: AWS_SUB1, slug: aws_sub1 }
 
 cluster_type:
   - name: AWS
     site: aws
-    group: AWS UK West
+    group: AWS_SUB1
     tags: [aws]
     cluster:
-    - name: AWS
-      group: AWS UK West
+    - name: AWS UK West
       comment: test comments
   - name: vSphere
     cluster:
