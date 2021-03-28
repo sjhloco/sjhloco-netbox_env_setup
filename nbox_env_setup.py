@@ -29,7 +29,7 @@ import os
 
  ######################## Variables to change dependant on environment ########################
 # Directory that holds all device type templates
-dvc_type_dir = os.path.expanduser('~/Documents/Coding/Netbox/nbox_py_scripts/nbox_env_setup/device_type')
+dvc_type_dir = os.path.expanduser('~/Documents/Coding/Netbox/nbox_py_scripts/netbox_env_setup/device_type')
 
 # Netbox login details (create from your user profile or in admin for other users)
 netbox_url = "https://10.10.10.101"

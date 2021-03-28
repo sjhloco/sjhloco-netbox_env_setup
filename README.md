@@ -1,7 +1,7 @@
 # NetBox Baseline Environment
 
 This script is designed to create all the objects within the NetBox environment ready for adding devices. It does not add the devices themselves. Its purpose to add objects rather than edit or delete existing objects. It is not idempotent.\
-The Netbox environment is defined in a YAML file that follows the hierarchical structure of the NetBox menus. The script is formated to follow this same structure allowing subsections of the environment to be created or additions to be made to an existing section.
+The Netbox environment is defined in a YAML file that follows the hierarchical structure of the NetBox menus. The script is formatted to follow this same structure allowing subsections of the environment to be created or additions to be made to an existing section.
 
 ### API Engine
 
@@ -28,7 +28,7 @@ nbox.obj_check('Tenant', 'tenancy.tenants', 'name', org['tnt'])
 | Attribute | *name* |  The key of the data model dictionary used to check if an object exists
 | Data Model | *org['tnt']* |  The data model dictionary fed into the API engine
 
-***obj_create:*** The API engine (is run by the check method) used to create NetBox objects and handle errors. 
+***obj_create:*** The API engine (is run by the check method) used to create NetBox objects and handle errors.
 
 There are three possible outcomes from the API call which are relayed back in stdout:\
 ✅ Object created\
@@ -37,8 +37,8 @@ There are three possible outcomes from the API call which are relayed back in st
 
 ### Data Models
 
-Each NetBox menu is represented by a seperate data model method. When instantiated they use the input YAML file to create a list of dictionaries for each of objects under that NetBox menu. These dictionaires are run through check methods to create the NetBox objects.\
-Any of the check methods can be hashed out if the objects are not required. Because of the hierarchical structure of the YAML file the mandatory dictionary elements mwill still be required in the file even if those objects are not being created by this script. For example, to create a rack the YAML file needs the tenant, site and rack-group.
+Each NetBox menu is represented by a separate data model method. When instantiated they use the input YAML file to create a list of dictionaries for each of objects under that NetBox menu. These dictionaries are run through check methods to create the NetBox objects.\
+Any of the check methods can be hashed out if the objects are not required. Because of the hierarchical structure of the YAML file the mandatory dictionary elements will still be required in the file even if those objects are not being created by this script. For example, to create a rack the YAML file needs the tenant, site and rack-group.
 
 ***full_example.yaml*** is an example input file with all the available options defined.\
 ***simple_example.yaml*** is a more streamlined example with just the bare minimum of options defined.
@@ -68,10 +68,10 @@ nbox.obj_check('Device-type', 'dcim.device_types', 'model', dvc['dev_type'])
 ```
 
 **IPAM:** *RIR, Aggregates, Prefix/VLAN roles, VLAN-groups, VLANs, VRFs, Prefixes*\
-Prefix/VLAN roles group the VLANs and prefixes together to define envirnoments. They are top of the IPAM hierachy in the YAML file.\
-VLAN-groups, VLANs, VRFs and prefixes are in some way related to sites and tenants. Tenants can be assigned in a hierachical manner.\
-Tags can be set in multiple places for VLANs, VRFs and prefixes with differing variantes of inheritance.\
-VRFs and prefixes are either defined under the role (non-VLAN enviroments like clouds) or the VLAN-group (if prefixes associated to VLANs).\
+Prefix/VLAN roles group the VLANs and prefixes together to define environments. They are top of the IPAM hierarchy in the YAML file.\
+VLAN-groups, VLANs, VRFs and prefixes are in some way related to sites and tenants. Tenants can be assigned in a hierarchical manner.\
+Tags can be set in multiple places for VLANs, VRFs and prefixes with differing variants of inheritance.\
+VRFs and prefixes are either defined under the role (non-VLAN environments like clouds) or the VLAN-group (if prefixes associated to VLANs).\
 
 ```css
 ipam = nbox.create_ipam()
@@ -97,7 +97,7 @@ nbox.obj_check('Circuit', 'circuits.circuits', 'cid', crt['crt'])
 
 **Virtual:** *Cluster-group, Cluster-type, Cluster*\
 Clusters are groupings of resources which VMs run within. Cluster-groups and types allow further grouping of clusters based on things such as location or technology.\
-Site, tenant, cluster-group and tags can be set globally for all members of a cluster-type or be overiddern on a per-cluster basis.
+Site, tenant, cluster-group and tags can be set globally for all members of a cluster-type or be overridden on a per-cluster basis.
 
 ```css
 vrt = nbox.create_vrt()
@@ -108,7 +108,7 @@ nbox.obj_check('Cluster', 'virtualization.clusters', 'name', vrt['cltr'])
 
 ## Installation and Prerequisites
 
-Clone the repostitary and create a virtual environoment
+Clone the repository and create a virtual environment
 
 ```css
 git clone https://github.com/sjhloco/nbox_env.git
@@ -129,16 +129,22 @@ The first section of the script holds the customisable values to define the devi
 dvc_type_dir = os.path.expanduser('/Users/user1/Documents/Coding/Netbox/nbox_py_scripts/nbox_env_setup/device_type')
 
 netbox_url = "https://x.x.x.x"
-token = 'my_token_got_from_netbox'
+token = 'config.api_token'
 os.environ['REQUESTS_CA_BUNDLE'] = '/Users/user1/Documents/nbox_py_scripts/myCA.pem'
+```
+
+The token is actually set in a separate `config.py` variable file that I *.gitignore* so as not to share the token with the rest of the world. This is imported with 'import config' so if you want to input the token directly in the script remove this line. All that *config.py* holds is a single token variable:
+
+```bash
+token = 'my_token_got_from_netbox'
 ```
 
 ## Usage
 
-Before running ***nbox_env_setup.py*** it is recommended to use ***input_validate.py*** to verify the contents of input YAML file. It is an offline script (doesnt connect to NetBox) that verifies things such as:\
+Before running ***nbox_env_setup.py*** it is recommended to use ***input_validate.py*** to verify the contents of input YAML file. It is an offline script (doesn't connect to NetBox) that verifies things such as:\
 -All parent dictionaries (*tenant, manufacturer, rir, role, crt_type, provider, cluster_type*) are present and the key is a list (can be an empty list if not used)\
--All mandatory dictionaires are present\
--All Dictionary keys that are meant to be a list, integrar, boolean or IPv4 address are of the correct format\
+-All mandatory dictionaries are present\
+-All Dictionary keys that are meant to be a list, integer, boolean or IPv4 address are of the correct format\
 -All referenced objects such as tenant, site, rack_role, etc, exist within the input file\
 -No duplicate object names
 
