@@ -433,13 +433,13 @@ class TestIpam:
         actual_result = ipam.cr_rir(rir)
         assert actual_result == desired_rir, err_msg
 
-    # # 3b. AGGR: Test method for creating dict to add a RIR aggregate
-    # def test_cr_aggr(self):
-    #     err_msg = "❌ cr_aggr: Creation of RIR Aggregate dictionary failed"
-    #     global desired_aggr
-    #     desired_aggr = {}
-    #     actual_result = ipam.cr_aggr(rir, aggr)
-    #     assert actual_result == desired_aggr, err_msg
+    # 3b. AGGR: Test method for creating dict to add a RIR aggregate
+    def test_cr_aggr(self):
+        err_msg = "❌ cr_aggr: Creation of RIR Aggregate dictionary failed"
+        global desired_aggr
+        desired_aggr = {}
+        actual_result = ipam.cr_aggr(rir, aggr)
+        assert actual_result == desired_aggr, err_msg
 
     # # 3c. ROLE: Test method for creating dict to add a VRF/VLAN Role
     # def test_cr_role(self):
