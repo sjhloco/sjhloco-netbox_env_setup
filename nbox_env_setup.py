@@ -18,7 +18,7 @@ python nbox_env_setup.py simple_example.yml
 """
 
 from pprint import pprint
-import config
+# import config
 from typing import Any, Dict, List
 import pynetbox
 from pynetbox.core.query import RequestError
@@ -51,7 +51,7 @@ dvc_type_dir = os.path.expanduser(
 
 # For docker test environment
 token = "0123456789abcdef0123456789abcdef01234567"
-netbox_url = "http://10.10.10.104:8000"
+netbox_url = "http://10.103.40.120:8000/"
 
 
 # ----------------------------------------------------------------------------
@@ -77,7 +77,10 @@ class Nbox:
             if operator.attrgetter(api_attr)(self.nb).get(**fltr) == None:
                 obj_notexist_dm.append(each_obj_dm)
             else:
-                obj_exist_name.append(each_obj_dm[obj_fltr])
+                if obj_fltr == "slug":
+                    obj_exist_name.append(each_obj_dm["name"] + f" ({each_obj_dm[obj_fltr]})")
+                else:
+                    obj_exist_name.append(each_obj_dm[obj_fltr])
         return dict(notexist_dm=obj_notexist_dm, exist_name=obj_exist_name)
 
     # ----------------------------------------------------------------------------
@@ -337,7 +340,7 @@ class Organisation(Nbox):
         self.tenant = tenant
         self.rack_role = rack_role
         self.tnt, self.site, self.loc = ([] for i in range(3))
-        self.child_loc, self.rack, self.rr = ([] for i in range(3))
+        self.rack, self.rr = ([] for i in range(2))
 
     # 1a. TNT: Create Tenant dictionary
     def cr_tnt(self, each_tnt: Dict[str, Any]) -> Dict[str, Any]:
@@ -384,11 +387,9 @@ class Organisation(Nbox):
             site=dict(name=each_site["name"]),
             description=each_loc.get("descr", ""),
         )
-        if parent == None:
-            self.loc.append(tmp_loc)
-        else:
-            tmp_loc["parent"] = dict(name=parent)
-            self.child_loc.append(tmp_loc)
+        if parent != None:
+            tmp_loc["parent"] = dict(name=parent)  
+        self.loc.append(tmp_loc)
 
         # 1d. RACK: Creates list of racks within the location
         if each_loc.get("rack") != None:
@@ -397,7 +398,7 @@ class Organisation(Nbox):
                     name=each_rack["name"],
                     # Site and group are dict as using dictionary of attributes rather than ID
                     site=dict(name=each_site["name"]),
-                    location=dict(name=each_loc["name"]),
+                    location=dict(slug=each_loc["slug"]),
                     tenant=dict(name=each_rack.get("tenant", each_tnt["name"])),
                     u_height=each_rack.get("height", 42),
                     tags=self.get_or_create_tag(each_rack.get("tags")),
@@ -430,7 +431,6 @@ class Organisation(Nbox):
                 if each_site.get("location") != None:
                     for each_loc in each_site["location"]:
                         self.cr_loc_rack(each_loc, each_site, each_tnt, None)
-                        print(self.loc)
                         # 1d. NESTED_LOC_RACK: List of nested locations and racks within them
                         if each_loc.get("location") != None:
                             for each_child_loc in each_loc["location"]:
@@ -448,7 +448,6 @@ class Organisation(Nbox):
             tnt=self.tnt,
             site=self.site,
             location=self.loc,
-            child_loc=self.child_loc,
             rack=self.rack,
             rack_role=self.rr,
         )
@@ -923,24 +922,23 @@ def main():
     nbox = Nbox(netbox_url, token)
 
     # 1. ORG_TNT_SITE_RACK: Create all the organisation objects
-    # org = Organisation(my_vars["tenant"], my_vars["rack_role"])
-    # org_dict = org.create_tnt_site_rack()
-    # # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
-    # nbox.engine("Rack Role", "dcim.rack_roles", "name", org_dict["rack_role"])
-    # nbox.engine("Tenant", "tenancy.tenants", "name", org_dict["tnt"])
-    # nbox.engine("Site", "dcim.sites", "name", org_dict["site"])
-    # nbox.engine("Location (parent)", "dcim.locations", "name", org_dict["location"])
-    # nbox.engine("Location (child)", "dcim.locations", "name", org_dict["child_loc"])
-    # nbox.engine("Rack", "dcim.racks", "name", org_dict["rack"])
+    org = Organisation(my_vars["tenant"], my_vars["rack_role"])
+    org_dict = org.create_tnt_site_rack()
+    # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
+    nbox.engine("Rack Role", "dcim.rack_roles", "name", org_dict["rack_role"])
+    nbox.engine("Tenant", "tenancy.tenants", "name", org_dict["tnt"])
+    nbox.engine("Site", "dcim.sites", "name", org_dict["site"])
+    nbox.engine("Location", "dcim.locations", "slug", org_dict["location"])
+    nbox.engine("Rack", "dcim.racks", "name", org_dict["rack"])
 
     # 2. DVC_MTFR_TYPE: Create all the objects required to create devices
-    dvc = Devices(my_vars["device_role"], my_vars["manufacturer"])
-    dvc_dict = dvc.create_dvc_type_role()
+    # dvc = Devices(my_vars["device_role"], my_vars["manufacturer"])
+    # dvc_dict = dvc.create_dvc_type_role()
     # # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
     # nbox.engine("Device-role", "dcim.device_roles", "name", dvc_dict["dev_role"])
     # nbox.engine("Manufacturer", "dcim.manufacturers", "name", dvc_dict["mftr"])
     # nbox.engine("Platform", "dcim.platforms", "name", dvc_dict["pltm"])
-    nbox.engine("Device-type", "dcim.device_types", "model", dvc_dict["dev_type"])
+    # nbox.engine("Device-type", "dcim.device_types", "model", dvc_dict["dev_type"])
 
     # 3. IPAM_VRF_VLAN: Create all the IPAM objects
     # ipam = Ipam(my_vars["rir"], my_vars["role"])
