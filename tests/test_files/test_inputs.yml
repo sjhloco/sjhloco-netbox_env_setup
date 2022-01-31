@@ -1,0 +1,139 @@
+
+# ----------------------------------------------------------------------------
+# ORGANISATION: Each customer is a tenant with its associated sites (optional). Sites hold rack-groups (optional) which in turn hold racks
+# ----------------------------------------------------------------------------
+tenant:
+- name: UTEST_tenant1
+  slug: utest_tnt1
+  descr: UTEST tnt1 Descri
+  site:
+  - name: UTEST_site1
+    descr: UTEST site1 Descri
+    time_zone: US/Eastern
+    addr: UTEST Addr
+    contact: UTEST contact
+    phone: UTEST phone number
+    email: UTESTe@example.co.uk
+    ASN: 65100
+    location:
+    - name: UTEST Location
+      descr: UTEST location Descri
+      rack:
+      - name: UTEST_FL1_A1
+        role: UTEST_rack_role
+        height: 5
+        tenant: UTEST_tenant2
+        # tags: {UTEST_rack1_TAG: 9e9e9e}         Unhash to test tags, need netbox connectivity to do
+      location:
+      - name: UTEST Child Location
+        descr: Nested location
+- name: UTEST_tenant2
+  site:
+  - name: UTEST_site2
+# RACK_ROLE: The role of the rack. Only needed if it is defined under the rack. slug, color, and descr are optional
+rack_role:
+  - {name: UTEST_rack_role, color: c0c0c0, descr: UTEST rack-role Descri}
+
+# ----------------------------------------------------------------------------
+# DEVICES: Each manufacturer optionally holds device types (defines device info such as interfaces) and the platform (driver used by NAPALM)
+# ----------------------------------------------------------------------------
+manufacturer:
+- name: cisco
+  slug: cisco
+  descr: All Cisco devices
+  platform:
+    - {name: IOS, slug: ios, driver: ios }
+  device_type:
+    - ws_c3560cx_12pcs.yaml
+    - pp_copper_1u.yaml
+# DVC_ROLE: Roles of devices. slug, colour, descr and vm_role are optional. By default VMs can be assigned to a device_role, to change this add 'vm_role: False'
+device_role:
+  - {name: cabling, slug: cbl, color: c0c0c0, descr: Patch Panels, vm_role: False}
+
+# ----------------------------------------------------------------------------
+# RIR: Each governing body (including RFC1918) and your public address ranges (aggregates) assigned by them
+# ----------------------------------------------------------------------------
+rir:
+  - name: RFC1918
+    descr:  RFC 1918 Private address ranges
+    is_private: True
+    ranges:
+    - {prefix: 10.0.0.0/8, descr: Class A private address range}
+
+# ----------------------------------------------------------------------------
+# IPAM: Roles provide segregation of networks (i.e prod, npe) holding VLANs and prefixes. By default VLANs within a group or prefixes in a VRF must be unique
+# ----------------------------------------------------------------------------
+role:
+- name: example_prod
+  descr: Production network
+  slug: prod
+  site:
+  - name: site1
+    vlan_grp:
+    - name: site1 vl group
+      slug: site1_vl_grp
+      descr: site1 vlan group
+      tenant: tenant1
+      vlan:
+      - name: DATA_VL10
+        id: 10
+        descr: NAS and servers
+        tenant: tenant2
+      vrf:
+      - name: GLOBAL
+        rd: '65101:1'
+        descr: Global VRF
+        tenant: tenant1
+        prefix:
+        - pfx: 10.10.10.0/24
+          vl: 10
+          descr: Data VLAN
+          pool: True
+          tenant: tenant2
+    vrf:
+    - name: AZU_NT_VNET1
+      prefix:
+      - pfx: 10.20.10.0/24
+        descr: NT-vnet1-mgmt
+
+# ----------------------------------------------------------------------------
+# CIRCUIT: Different types that can be associated to circuits. Only name is mandatory, slug and descr are optional
+# ----------------------------------------------------------------------------
+circuit_type:
+  - { name: Fibre Broadband, slug: fibre_bband, descr: Fibre broadband }
+## PROVIDER: Supplier whom provides some form of connectivity.
+provider:
+- name: BT Group
+  slug: bt
+  asn: 65105
+  account_num: Mr evil
+  portal_url: https://www.bt.com
+  noc_contact: btnoc@bt.com
+  admin_contact: btnoc@bt.com
+  comments: BT are s#@t
+  circuit:
+    - cid: 666
+      type: Fibre Broadband
+      descr: home broadband
+      tenant: tenant2
+      commit_rate: 100000
+
+# ----------------------------------------------------------------------------
+# VIRTUALISATION: CLusters, cluster-groups and cluster types
+# ----------------------------------------------------------------------------
+## CLUSTER GROUP: Can be used to add optional grouping, for example region or a client
+cluster_group:
+  - { name: UTEST cluster grp, descr: UTEST cluster grp description }
+## CLUSTER: Cluster Types group based on technology. Clusters are logical groupings of physical resources (physical hosts) within which VMs run.
+cluster_type:
+  - name: UTEST_cltr_type
+    site: UTEST_site
+    tenant: UTEST_tenant
+    group: UTEST cluster grp
+    cluster:
+    - name: UTEST_cluster
+      comment: UTEST cluster description
+    - name: UTEST_cluster
+      group: UTEST cluster grp2
+      site: UTEST_site2
+      tenant: UTEST_tenant2

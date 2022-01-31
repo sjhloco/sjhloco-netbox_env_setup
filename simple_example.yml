@@ -1,6 +1,9 @@
 ########################################## INFO ##########################################
 # This example shows a minimun install with mostly mandatory and the odd optional setting
 
+# !!!!  CHAnGE TAGSto {rack2: 9e9e9e}
+chnage rack group to location
+
 ########################################## ORGANISATION ##########################################
 ## ORG: Each customer is a tenant with its associated sites (optional). Sites hold rack-groups (optional) which in turn hold racks
 tenant:

@@ -1,5 +1,7 @@
 # NetBox Baseline Environment
 
+!!!! Just in process of reworking as the major changes since netbox 2.8 this was originally doen for have broke a lot of it. Should be complete by the end fo the week !!!!!
+
 This script is designed to create all the objects within the NetBox environment ready for adding devices. It does not add the devices themselves. Its purpose to add objects rather than edit or delete existing objects. It is not idempotent.\
 The Netbox environment is defined in a YAML file that follows the hierarchical structure of the NetBox menus. The script is formatted to follow this same structure allowing subsections of the environment to be created or additions to be made to an existing section.
 
