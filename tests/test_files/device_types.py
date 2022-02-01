@@ -127,7 +127,7 @@ sw = {
 }
 
 pp = {
-    "manufacturer": {"name": "cisco"},
+    "manufacturer": {"name": "excel"},
     "model": "PP_Copper_1U",
     "slug": "pp_cop_1u",
     "part_number": "pp_copper_1u",

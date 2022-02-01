@@ -16,6 +16,7 @@ from nbox_env_setup import Devices
 from nbox_env_setup import Ipam
 from nbox_env_setup import Circuits
 from nbox_env_setup import Virtualisation
+
 import tests.test_files.device_types as device_types
 
 
@@ -77,13 +78,14 @@ def organisation_vars():
 # Load the vars for Devices class
 @pytest.fixture(scope="class")
 def devices_vars():
-    global dvc, dev_role, mftr, pltm, dev_type_swi, dev_type_pp
+    global dvc, dev_role, mftr_sw, mftr_pp, pltm, dev_type_swi, dev_type_pp
     dvc = Devices(my_vars["device_role"], my_vars["manufacturer"])
     dev_role = my_vars["device_role"][0]
-    mftr = my_vars["manufacturer"][0]
+    mftr_sw = my_vars["manufacturer"][0]
+    mftr_pp = my_vars["manufacturer"][1]
     pltm = my_vars["manufacturer"][0]["platform"][0]
     dev_type_swi = my_vars["manufacturer"][0]["device_type"][0]
-    dev_type_pp = my_vars["manufacturer"][0]["device_type"][1]
+    dev_type_pp = my_vars["manufacturer"][1]["device_type"][0]
 
 
 # Load the vars for IPAM class
@@ -97,7 +99,7 @@ def ipam_vars():
     vlan_grp = my_vars["role"][0]["site"][0]["vlan_grp"][0]
     vlan = my_vars["role"][0]["site"][0]["vlan_grp"][0]["vlan"][0]
     vrf = my_vars["role"][0]["site"][0]["vlan_grp"][0]["vrf"][0]
-    vlan = my_vars["role"][0]["site"][0]["vlan_grp"][0]["vrf"][0]["prefix"][0]
+    pfx = my_vars["role"][0]["site"][0]["vlan_grp"][0]["vrf"][0]["prefix"][0]
 
 
 # Load the vars for Circuits class
@@ -153,7 +155,7 @@ class TestNbox:
                 "tags": [],
             }
         ]
-        desired_result = "✅ Tenant: 'UTEST_tenant' successfully created\n"
+        desired_result = "✅ Tenant: 'UTEST_tenant1' successfully created\n"
         try:
             nbox.obj_create("Tenant", "tenancy.tenants", cr_tnt, [])
         except SystemExit:
@@ -165,7 +167,7 @@ class TestNbox:
         err_msg = "❌ obj_check: Checking for existence of netbox object failed"
         desired_result = {
             "notexist_dm": [{"name": "no_tenant"}],
-            "exist_name": ["UTEST_tenant"],
+            "exist_name": ["UTEST_tenant1"],
         }
         actual_result = nbox.obj_check(
             "tenancy.tenants",
@@ -178,6 +180,16 @@ class TestNbox:
     def test_get_or_create_tag(self):
         err_msg = "❌ get_or_create_tag: Creation of tag or checking for existence of tag failed"
         actual_result = nbox.get_or_create_tag({"UTEST_tag": "c0c0c0"})
+        assert isinstance(actual_result[0], int), err_msg
+        # Run twice as first create, then second time make sure can get the ID
+        assert isinstance(actual_result[0], int), err_msg
+
+    # Test creating RT or getting existing tag ID
+    def test_get_or_create_rt(self):
+        err_msg = (
+            "❌ get_or_create_rt: Creation of RT or checking for existence of RT failed"
+        )
+        actual_result = nbox.get_or_create_rt({"UTEST_tag": "c0c0c0"})
         assert isinstance(actual_result[0], int), err_msg
         # Run twice as first create, then second time make sure can get the ID
         assert isinstance(actual_result[0], int), err_msg
@@ -232,9 +244,9 @@ class TestOrganisation:
     # 1c. LOC_RACK: Test method for creating dict to add a location and rack
     def test_cr_loc_rack(self):
         err_msg = "❌ cr_loc_rack: Creation of {} dictionary failed"
-        global desired_loc, desired_rack, desired_ch_loc
+        global desired_prnt_loc, desired_rack, desired_chld_loc
 
-        desired_loc = {
+        desired_prnt_loc = {
             "description": loc["descr"],
             "name": loc["name"],
             "site": {"name": site1["name"]},
@@ -242,7 +254,7 @@ class TestOrganisation:
         }
         desired_rack = [
             {
-                "location": {"name": loc["name"]},
+                "location": {"slug": "utest_location"},
                 "name": rack["name"],
                 "role": {"name": rr["name"]},
                 "site": {"name": site1["name"]},
@@ -252,9 +264,9 @@ class TestOrganisation:
             }
         ]
         actual_result = org.cr_loc_rack(loc, site1, tnt1, None)
-        assert actual_result[0] == desired_loc, err_msg.format("parent location")
+        assert actual_result[0] == desired_prnt_loc, err_msg.format("parent location")
         assert actual_result[1] == desired_rack, err_msg.format("rack")
-        desired_ch_loc = {
+        desired_chld_loc = {
             "description": loc["location"][0]["descr"],
             "name": loc["location"][0]["name"],
             "site": {"name": site1["name"]},
@@ -262,7 +274,7 @@ class TestOrganisation:
             "parent": {"name": loc["name"]},
         }
         actual_result = org.cr_loc_rack(loc["location"][0], site1, tnt1, loc["name"])
-        assert actual_result[0] == desired_ch_loc, err_msg.format("child location")
+        assert actual_result[0] == desired_chld_loc, err_msg.format("child location")
 
     # 1d. RACK-ROLE: Test method for creating dict to add a rack-role
     def test_cr_rr(self):
@@ -282,7 +294,6 @@ class TestOrganisation:
         err_msg = (
             "❌ create_tnt_site_rack: Creation of organisation objects dictionary failed"
         )
-        # breakpoint()
         # Need to initialise a fresh or keeps location/rack from test_cr_loc_rack
         org = Organisation(my_vars["tenant"], my_vars["rack_role"])
 
@@ -309,13 +320,14 @@ class TestOrganisation:
             "tags": [],
         }
         desired_tnt.append(desired_tnt2)
+        desired_loc = [desired_prnt_loc]
+        desired_loc.append(desired_chld_loc)
 
         actual_result = org.create_tnt_site_rack()
         desired_result = dict(
             tnt=desired_tnt,
             site=desired_site,
-            location=[desired_loc],
-            child_loc=[desired_ch_loc],
+            location=desired_loc,
             rack=desired_rack,
             rack_role=[desired_rr],
         )
@@ -345,14 +357,14 @@ class TestDevices:
     # 2b. MFTR: Test method for creating dict to add a manufacturer
     def test_cr_mftr(self):
         err_msg = "❌ cr_mftr: Creation of Manufacturer dictionary failed"
-        global desired_mftr
-        desired_mftr = {
-            "description": mftr["descr"],
-            "name": mftr["name"],
-            "slug": mftr["slug"],
+        global desired_mftr_sw
+        desired_mftr_sw = {
+            "description": mftr_sw["descr"],
+            "name": mftr_sw["name"],
+            "slug": mftr_sw["slug"],
         }
-        actual_result = dvc.cr_mftr(mftr)
-        assert actual_result == desired_mftr, err_msg
+        actual_result = dvc.cr_mftr(mftr_sw)
+        assert actual_result == desired_mftr_sw, err_msg
 
     # 2c. PLTM: Test method for creating dict to add a platform
     def test_cr_pltm(self):
@@ -360,12 +372,12 @@ class TestDevices:
         global desired_pltm
         desired_pltm = {
             "description": "",
-            "manufacturer": {"name": mftr["name"]},
+            "manufacturer": {"name": mftr_sw["name"]},
             "name": pltm["name"],
             "napalm_driver": pltm["driver"],
             "slug": pltm["slug"],
         }
-        actual_result = dvc.cr_pltm(mftr["name"], pltm)
+        actual_result = dvc.cr_pltm(mftr_sw["name"], pltm)
         assert actual_result == desired_pltm, err_msg
 
     # 2d. CONN: Test method for creating dict to add a connection
@@ -387,7 +399,7 @@ class TestDevices:
         err_msg = "❌ cr_dev_type: Creation of Switch Device Type dictionary failed"
         global desired_dev_type_sw
         desired_dev_type_sw = device_types.sw
-        actual_result = dvc.cr_dev_type(mftr["name"], dev_type_swi)
+        actual_result = dvc.cr_dev_type(mftr_sw["name"], dev_type_swi)
         assert actual_result == desired_dev_type_sw, err_msg
 
         # 2f. DEV_TYPE_PP: Test method for creating dict to add a patch panel device_type
@@ -396,18 +408,27 @@ class TestDevices:
         err_msg = "❌ cr_dev_type: Creation of Patch Panel Device Type dictionary failed"
         global desired_dev_type_pp
         desired_dev_type_pp = device_types.pp
-        actual_result = dvc.cr_dev_type(mftr["name"], dev_type_pp)
+        actual_result = dvc.cr_dev_type(mftr_pp["name"], dev_type_pp)
         assert actual_result == desired_dev_type_pp, err_msg
 
     # 2g. DVC: Test method for creating dict to add all Device Type objects
     def test_create_dvc_type_role(self):
         err_msg = "❌ create_create_dvc_type_role: Creation of Device Types objects dictionary failed"
+
+        desired_mftr_pp = {
+            "description": "",
+            "name": mftr_pp["name"],
+            "slug": mftr_pp["name"],
+        }
+        desired_mftr = [desired_mftr_sw]
+        desired_mftr.append(desired_mftr_pp)
+
         desired_dev_type = [desired_dev_type_sw]
         desired_dev_type.append(desired_dev_type_pp)
         actual_result = dvc.create_dvc_type_role()
         desired_result = dict(
             dev_role=[desired_dev_role],
-            mftr=[desired_mftr],
+            mftr=desired_mftr,
             pltm=[desired_pltm],
             dev_type=desired_dev_type,
         )
@@ -437,68 +458,113 @@ class TestIpam:
     def test_cr_aggr(self):
         err_msg = "❌ cr_aggr: Creation of RIR Aggregate dictionary failed"
         global desired_aggr
-        desired_aggr = {}
+        desired_aggr = {
+            "description": aggr["descr"],
+            "prefix": aggr["prefix"],
+            "rir": {"name": rir["name"]},
+            "tags": [],
+        }
         actual_result = ipam.cr_aggr(rir, aggr)
         assert actual_result == desired_aggr, err_msg
 
-    # # 3c. ROLE: Test method for creating dict to add a VRF/VLAN Role
-    # def test_cr_role(self):
-    #     err_msg = "❌ cr_role: Creation of VRF/VLAN Role dictionary failed"
-    #     global desired_role
-    #     desired_role = {}
-    #     actual_result = ipam.cr_role(rir, role)
-    #     assert actual_result == desired_role, err_msg
+    # 3c. ROLE: Test method for creating dict to add a VRF/VLAN Role
+    def test_cr_role(self):
+        err_msg = "❌ cr_role: Creation of VRF/VLAN Role dictionary failed"
+        global desired_role
+        desired_role = {
+            "description": role["descr"],
+            "name": role["name"],
+            "slug": "utest_role",
+        }
+        actual_result = ipam.cr_role(role)
+        assert actual_result == desired_role, err_msg
 
-    # # 3d. VL+GRP: Test method for creating dict to add a VLAN Group
-    # def test_cr_vl_grp(self):
-    #     err_msg = "❌ cr_vl_grp: Creation of VLAN Group dictionary failed"
-    #     global desired_vl_grp
-    #     desired_vl_grp = {}
-    #     actual_result = ipam.cr_role(role["site"][0]["name"], vlan_grp)
-    #     assert actual_result == desired_vl_grp, err_msg
+    # 3d. VL+GRP: Test method for creating dict to add a VLAN Group
+    def test_cr_vl_grp(self):
+        err_msg = "❌ cr_vl_grp: Creation of VLAN Group dictionary failed"
+        global desired_vl_grp
+        desired_vl_grp = {
+            "description": vlan_grp["descr"],
+            "name": vlan_grp["name"],
+            "site": {"name": role["site"][0]["name"]},
+            "slug": vlan_grp["slug"],
+        }
+        actual_result = ipam.cr_vl_grp(role["site"][0]["name"], vlan_grp)
+        assert actual_result == desired_vl_grp, err_msg
 
-    # # 3e. VLAN: Test method for creating dict to add a VLAN
-    # def test_cr_vlan(self):
-    #     err_msg = "❌ cr_vlan: Creation of VLAN Group dictionary failed"
-    #     global desired_vlan
-    #     desired_vlan = {}
-    #     # NEED TENTANT, guess depneds on inheritnace
-    #     actual_result = ipam.cr_role(role["name"], "NEED_TNT", vlan_grp, vlan)
-    #     assert actual_result == desired_vlan, err_msg
+    # 3e. VLAN: Test method for creating dict to add a VLAN
+    def test_cr_vlan(self):
+        err_msg = "❌ cr_vlan: Creation of VLAN Group dictionary failed"
+        global desired_vlan
+        desired_vlan = {
+            "description": vlan["descr"],
+            "group": {"name": vlan_grp["name"]},
+            "name": vlan["name"],
+            "role": {"name": role["name"]},
+            "tags": [],
+            "tenant": {"name": vlan_grp["tenant"]},
+            "vid": vlan["id"],
+        }
+        actual_result = ipam.cr_vlan(role["name"], "UTEST_tenant1", vlan_grp, vlan)
+        assert actual_result == desired_vlan, err_msg
 
-    # # 3h. VRF: Test method for creating dict to add a VRF (no VLAN association)
-    # def test_cr_vrf(self):
-    #     err_msg = "❌ cr_vrf Creation of VRF dictionary (no VLAN association) failed"
-    #     global desired_vrf
-    #     desired_vrf = {}
-    #     # NEED TENTANT, guess depneds on inheritnace
-    #     actual_result = ipam.cr_vrf("NEED_TNT", vrf)
-    #     assert actual_result == desired_vlan, err_msg
+    # 3f. VRF: Test method for creating dict to add a VRF (no VLAN association)
+    def test_cr_vrf(self):
+        err_msg = "❌ cr_vrf Creation of VRF dictionary (no VLAN association) failed"
+        global desired_vrf
+        desired_vrf = {
+            "description": vrf["descr"],
+            "enforce_unique": True,
+            "export_targets": [],
+            "import_targets": [],
+            "name": vrf["name"],
+            "rd": vrf["rd"],
+            "tags": [],
+            "tenant": {"name": vrf["tenant"]},
+        }
+        actual_result = ipam.cr_vrf("UTEST_tenant1", vrf)
+        assert actual_result == desired_vrf, err_msg
 
-    # # 3i. VRF_VLAN: Test method for creating dict to add a VRF within VLAN Group
-    # def test_cr_pfx(self):
-    #     err_msg = "❌ cr_vrf Creation of VRF dictionary (within VLAN Group) failed"
-    #     global desired_pfx
-    #     desired_pfx = {}
-    #     # NEED TENTANT, guess depneds on inheritnace
-    #     actual_result = ipam.cr_pfx(role["name"], role["site"][0]["name"], "NEED_TNT", vlan_grp["name"], vrf["name"], pfx)
-    #     assert actual_result == desired_pfx, err_msg
+    # 3g. VRF_VLAN: Test method for creating dict to add a VRF within VLAN Group
+    def test_cr_pfx(self):
+        err_msg = "❌ cr_pfx Creation of VRF dictionary (within VLAN Group) failed"
+        global desired_pfx
+        desired_pfx = {
+            "description": pfx["descr"],
+            "is_pool": pfx["pool"],
+            "prefix": pfx["pfx"],
+            "role": {"name": role["name"]},
+            "site": {"name": role["site"][0]["name"]},
+            "tags": [],
+            "tenant": {"name": pfx["tenant"]},
+            "vl_grp": {"name": vlan_grp["name"]},
+            "vlan": pfx["vl"],
+            "vrf": {"name": vrf["name"]},
+        }
+        actual_result = ipam.cr_pfx(
+            role["name"],
+            role["site"][0]["name"],
+            "",
+            vlan_grp["name"],
+            vrf["name"],
+            pfx,
+        )
+        assert actual_result == desired_pfx, err_msg
 
-    # # 3j. IPAM: Test method for creating dict to add all IPAM objects
-    # def test_create_ipam(self):
-    #     err_msg = "❌ create_ipam: Creation of IPAM objects dictionary failed"
-
-    #     actual_result = ipam.create_ipam()
-    #     desired_result = dict(
-    #         rir=[desired_rir],
-    #         aggr=[desired_aggr],
-    #         role=[desired_role],
-    #         vlan_grp=[desired_vl_grp],
-    #         vlan=[desired_vlan],
-    #         vrf=[desired_vrf],
-    #         prefix=[desired_pfx],
-    #     )
-    #     assert actual_result == desired_result, err_msg
+    # 3h. IPAM: Test method for creating dict to add all IPAM objects
+    def test_create_ipam(self):
+        err_msg = "❌ create_ipam: Creation of IPAM objects dictionary failed"
+        actual_result = ipam.create_ipam()
+        desired_result = dict(
+            rir=[desired_rir],
+            aggr=[desired_aggr],
+            role=[desired_role],
+            vlan_grp=[desired_vl_grp],
+            vlan=[desired_vlan],
+            vrf=[desired_vrf],
+            prefix=[desired_pfx],
+        )
+        assert actual_result == desired_result, err_msg
 
 
 # ----------------------------------------------------------------------------

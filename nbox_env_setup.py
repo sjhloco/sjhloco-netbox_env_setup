@@ -18,6 +18,7 @@ python nbox_env_setup.py simple_example.yml
 """
 
 from pprint import pprint
+
 # import config
 from typing import Any, Dict, List
 import pynetbox
@@ -51,8 +52,8 @@ dvc_type_dir = os.path.expanduser(
 
 # For docker test environment
 token = "0123456789abcdef0123456789abcdef01234567"
-netbox_url = "http://10.103.40.120:8000/"
-
+netbox_url = "http://10.10.10.104:8000/"
+# netbox_url = "http://10.103.40.120:8000/"
 
 # ----------------------------------------------------------------------------
 # INZT_LOAD: Opens netbox connection and loads the variable file
@@ -78,7 +79,9 @@ class Nbox:
                 obj_notexist_dm.append(each_obj_dm)
             else:
                 if obj_fltr == "slug":
-                    obj_exist_name.append(each_obj_dm["name"] + f" ({each_obj_dm[obj_fltr]})")
+                    obj_exist_name.append(
+                        each_obj_dm["name"] + f" ({each_obj_dm[obj_fltr]})"
+                    )
                 else:
                     obj_exist_name.append(each_obj_dm[obj_fltr])
         return dict(notexist_dm=obj_notexist_dm, exist_name=obj_exist_name)
@@ -308,13 +311,33 @@ class Nbox:
                 tags.append(tag.id)
         return tags
 
-    # PRINT_TAG: Prints the result of existing and newly created tags
-    def print_tags(self) -> None:
-        if len(tag_exists) != 0:
-            self.rc.print(f"⚠️  [b]Tags[/b]: '{', '.join(tag_exists)}' already exist")
-        if len(tag_created) != 0:
+    # RT: Gathers ID of existing RT or creates new one and returns ID (list of IDs)
+    def get_or_create_rt(self, rt: List, tnt: str) -> List:
+        all_rt = []
+        if isinstance(rt, list):
+            rt = dict.fromkeys(rt, "")
+        if rt != None:
+            for name, descr in rt.items():
+                rt = self.nb.ipam.route_targets.get(name=name)
+                if not rt:
+                    fltr = {"name": name, "description": descr, "tenant": {"name": tnt}}
+                    rt = self.nb.ipam.route_targets.create(**fltr)
+                    rt_created.append(name)
+                else:
+                    rt_exists.append(name)
+
+                all_rt.append(rt.id)
+        return all_rt
+
+    # PRINT_TAG_RT: Prints the result of existing and newly created tags
+    def print_tag_rt(self, input_msg, exists, created) -> None:
+        if len(created) != 0:
             self.rc.print(
-                f":white_check_mark: [b]Tags[/b]: '{', '.join(tag_created)}' successfully created"
+                f":white_check_mark: [b]{input_msg}[/b]: '{', '.join(created)}' successfully created"
+            )
+        elif len(exists) != 0:
+            self.rc.print(
+                f"⚠️  [b]{input_msg}[/b]: '{', '.join(exists)}' already exist"
             )
 
     # SLUG: If slug is empty replaces it with tenant name (lowercase) replacing whitespace with '_'
@@ -388,7 +411,7 @@ class Organisation(Nbox):
             description=each_loc.get("descr", ""),
         )
         if parent != None:
-            tmp_loc["parent"] = dict(name=parent)  
+            tmp_loc["parent"] = dict(name=parent)
         self.loc.append(tmp_loc)
 
         # 1d. RACK: Creates list of racks within the location
@@ -398,7 +421,9 @@ class Organisation(Nbox):
                     name=each_rack["name"],
                     # Site and group are dict as using dictionary of attributes rather than ID
                     site=dict(name=each_site["name"]),
-                    location=dict(slug=each_loc["slug"]),
+                    location=dict(
+                        slug=each_loc.get("slug", self.make_slug(each_loc["name"]))
+                    ),
                     tenant=dict(name=each_rack.get("tenant", each_tnt["name"])),
                     u_height=each_rack.get("height", 42),
                     tags=self.get_or_create_tag(each_rack.get("tags")),
@@ -611,12 +636,10 @@ class Ipam(Nbox):
         )
 
     # 3c. ROLE: Provides segregation of networks (i.e prod, npe, etc), applies to all VLANs and prefixes beneath it
-    def cr_role(
-        self, each_rir: Dict[str, Any], each_role: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def cr_role(self, each_role: Dict[str, Any]) -> Dict[str, Any]:
         return dict(
             name=each_role["name"],
-            slug=each_role.get("slug", self.make_slug(each_rir["name"])),
+            slug=each_role.get("slug", self.make_slug(each_role["name"])),
             description=each_role.get("descr", ""),
         )
 
@@ -655,6 +678,14 @@ class Ipam(Nbox):
             enforce_unique=each_vrf.get("unique", True),
             tenant=dict(name=vrf_tnt),
             tags=self.get_or_create_tag(each_vrf.get("tags")),
+            import_targets=self.get_or_create_rt(
+                each_vrf.get("import_rt"),
+                vrf_tnt,
+            ),
+            export_targets=self.get_or_create_rt(
+                each_vrf.get("export_rt"),
+                vrf_tnt,
+            ),
         )
         if each_vrf.get("rd") != None:
             tmp_vrf["rd"] = each_vrf["rd"]
@@ -697,7 +728,7 @@ class Ipam(Nbox):
                     self.aggr.append(self.cr_aggr(each_rir, each_aggr))
         # 3c. ROLE: Create Role dictionary
         for each_role in self.pfx_vlan_role:
-            self.role.append(self.cr_role(each_rir, each_role))
+            self.role.append(self.cr_role(each_role))
             # Loops through sites to create vlans and prefixes
             for each_site in each_role["site"]:
                 tnt = self.get_tnt(each_site["name"])
@@ -883,6 +914,7 @@ class Virtualisation(Nbox):
             type_tnt = each_type.get("tenant", None)
         elif each_type.get("tenant") == None:
             try:
+                site = each_cltr.get("site", type_site)
                 type_tnt = dict(self.nb.dcim.sites.get(name=site))["tenant"]["name"]
             except:
                 type_tnt = None
@@ -909,8 +941,8 @@ class Virtualisation(Nbox):
 
 ######################## ENGINE: Runs the methods of the script ########################
 # Used by all object creations so have to be created outside of classes and outside main() or is missing for pytest
-global tag_exists, tag_created
-tag_exists, tag_created = ([] for i in range(2))
+global tag_exists, tag_created, rt_exists, rt_created
+tag_exists, tag_created, rt_exists, rt_created = ([] for i in range(4))
 
 
 def main():
@@ -922,16 +954,16 @@ def main():
     nbox = Nbox(netbox_url, token)
 
     # 1. ORG_TNT_SITE_RACK: Create all the organisation objects
-    org = Organisation(my_vars["tenant"], my_vars["rack_role"])
-    org_dict = org.create_tnt_site_rack()
-    # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
-    nbox.engine("Rack Role", "dcim.rack_roles", "name", org_dict["rack_role"])
-    nbox.engine("Tenant", "tenancy.tenants", "name", org_dict["tnt"])
-    nbox.engine("Site", "dcim.sites", "name", org_dict["site"])
-    nbox.engine("Location", "dcim.locations", "slug", org_dict["location"])
-    nbox.engine("Rack", "dcim.racks", "name", org_dict["rack"])
+    # org = Organisation(my_vars["tenant"], my_vars["rack_role"])
+    # org_dict = org.create_tnt_site_rack()
+    # # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
+    # nbox.engine("Rack Role", "dcim.rack_roles", "name", org_dict["rack_role"])
+    # nbox.engine("Tenant", "tenancy.tenants", "name", org_dict["tnt"])
+    # nbox.engine("Site", "dcim.sites", "name", org_dict["site"])
+    # nbox.engine("Location", "dcim.locations", "slug", org_dict["location"])
+    # nbox.engine("Rack", "dcim.racks", "name", org_dict["rack"])
 
-    # 2. DVC_MTFR_TYPE: Create all the objects required to create devices
+    # # 2. DVC_MTFR_TYPE: Create all the objects required to create devices
     # dvc = Devices(my_vars["device_role"], my_vars["manufacturer"])
     # dvc_dict = dvc.create_dvc_type_role()
     # # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
@@ -941,15 +973,17 @@ def main():
     # nbox.engine("Device-type", "dcim.device_types", "model", dvc_dict["dev_type"])
 
     # 3. IPAM_VRF_VLAN: Create all the IPAM objects
-    # ipam = Ipam(my_vars["rir"], my_vars["role"])
-    # ipam_dict = ipam.create_ipam()
+    ipam = Ipam(my_vars["rir"], my_vars["role"])
+    ipam_dict = ipam.create_ipam()
 
     # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
     # nbox.engine("RIRs", "ipam.rirs", "name", ipam_dict["rir"])
     # nbox.engine("Aggregates", "ipam.aggregates", "prefix", ipam_dict["aggr"])
     # nbox.engine("Prefix/VLAN Role", "ipam.roles", "name", ipam_dict["role"])
     # nbox.engine("VLAN Group", "ipam.vlan-groups", "name", ipam_dict["vlan_grp"])
-    # nbox.engine("VRF", "ipam.vrfs", "name", ipam_dict["vrf"])
+    nbox.engine("VRF", "ipam.vrfs", "name", ipam_dict["vrf"])
+    nbox.print_tag_rt("Route-Targets", set(rt_exists), rt_created)
+
     # First check if VL/PFX exist in VL_GRP/VRF, then if exist in ROLE.
     # nbox.vlan_pfx_engine(
     #     "VLAN",
@@ -965,12 +999,12 @@ def main():
     # )
 
     # # 4. CRT_PVDR: Create all the Circuit objects
-    # crt = Circuits(my_vars["circuit_type"], my_vars["provider"])
-    # crt_dict = crt.create_crt_pvdr()
+    crt = Circuits(my_vars["circuit_type"], my_vars["provider"])
+    crt_dict = crt.create_crt_pvdr()
     # # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
     # nbox.engine("Circuit Type", "circuits.circuit-types", "name", crt_dict["crt_type"])
     # nbox.engine("Provider", "circuits.providers", "name", crt_dict["pvdr"])
-    # nbox.engine("Circuit", "circuits.circuits", "cid", crt_dict["crt"])
+    nbox.engine("Circuit", "circuits.circuits", "cid", crt_dict["crt"])
 
     # # 5. VIRTUAL: Creates all the Cluster objects
     # vrtl = Virtualisation(my_vars["cluster_group"], my_vars["cluster_type"])
@@ -984,8 +1018,8 @@ def main():
     # )
     # nbox.engine("Cluster", "virtualization.clusters", "name", vrtl_dict["cltr"])
 
-    # 6. Prints any tags that have been created for any of the sections:
-    # nbox.print_tags()
+    # # 6. Prints any tags that have been created for any of the sections:
+    nbox.print_tag_rt("Tags", set(tag_exists), tag_created)
 
 
 if __name__ == "__main__":

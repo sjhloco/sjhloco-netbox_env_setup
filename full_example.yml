@@ -131,6 +131,8 @@ role:                               # Mandatory - List of roles
       vrf:                          # Optional - List of VRFs whose prefixes are linked to the VLANs (SVIs) within the VLAN group
       - name: GLOBAL                # Mandatory - Name of the VRF
         rd: '65101:1'               # Optional - RD of the VRF, must be in quotes (' ')
+        import_rt: {'65101:1': test}      # Optional - Import RT value (RFC 4360), if using ASN must be in quotes (' '). Chnage to dict if want discrtp {rt: descr}
+        export_rt: ['65101:1', 192.168.1.1:2]     # Optional - Export RT value (RFC 4360), if using ASN must be in quotes (' ')
         descr: Global VRF           # Optional
         # unique: False             # Optional - By default all prefixes in VRF must be unique, unhash to disable this
         tenant: tenant1             # Optional - The tenant for all prefixes, by default uses site tenant
@@ -144,6 +146,8 @@ role:                               # Mandatory - List of roles
           tags: {data_vrf: 9e9e9e}          # Optional - List of tags (even if only 1). Cumulative, also adds tags from role and VRF, deletes duplicates
     vrf:                            # Optional - List of VRFs whose prefixes arent associated to VLANs (for example Azure or AWS)
     - name: AZU_NT_VNET1            # Mandatory - Name of the VRF. All VRF and prefix optiosn are the same VRFs nested under VLAN Groups
+      import_rt: {'65101:1': test}      # Optional - Import RT value (RFC 4360), if using ASN must be in quotes (' '). Chnage to dict if want discrtp {rt: descr}
+      export_rt: ['65101:1', 192.168.1.1:2]
       prefix:
       - pfx: 10.20.10.0/24
         descr: NT-vnet1-mgmt
@@ -174,7 +178,10 @@ provider:                           # Mandatory - List of ISPs
       tenant: tenant2               # Optional
       commit_rate: 100000           # Optional - An integrar in Kbps
       tags: {666: 9e9e9e}                 # Optional - List of tags (even if only 1). Must be string, not integrar
+    - cid: test_tag
+      type: Fibre Broadband         # Mandatory - Must have one of the pre-defined circuit types
 
+      tags: {test_tag: 9e9e9e}                 # Optional - List of tags (e
 
 ########################################## Virtualization ##########################################
 ## CLUSTER GROUP: Can be used to add optionl grouping, for example region or a client
@@ -190,11 +197,11 @@ cluster_type:                     # Mandatory - List of Cluster Types
     site: azure                   # Optional - The site all clusters are in
     tenant: tenant1               # Optional - Tenant for all clusters, by default uses site tenant
     group: Azure UK West          # Optional - Cluster Group for all clusters
-    tags: {az: 9e9e9e}                    # Optional - List of tags for all clusters (even if only 1). Must be string, not integrar
-    cluster:                     # Optional - List of clusters
+    tags: {az: 9e9e9e}            # Optional - List of tags for all clusters (even if only 1). Must be string, not integrar
+    cluster:                      # Optional - List of clusters
     - name: AZURE VSE             # Mandatory - Name of the cluster
-      comment: UK West env       # Optional
-      tags: {ukwest: 9e9e9e}            # Optional - List of tags (even if only 1). Cumulative, also adds tags from all clusters, deletes duplicates
+      comment: UK West env        # Optional
+      tags: {ukwest: 9e9e9e}      # Optional - List of tags (even if only 1). Cumulative, also adds tags from all clusters, deletes duplicates
     - name: AZURE VSE1
       group: Azure Germany        # Optional - Overides Cluster Group set for all clusters
       site: site1                 # Optional - Overides the Site set for all clusters

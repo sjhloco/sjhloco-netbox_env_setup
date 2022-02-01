@@ -45,6 +45,8 @@ manufacturer:
     - {name: IOS, slug: ios, driver: ios }
   device_type:
     - ws_c3560cx_12pcs.yaml
+- name: excel
+  device_type:
     - pp_copper_1u.yaml
 # DVC_ROLE: Roles of devices. slug, colour, descr and vm_role are optional. By default VMs can be assigned to a device_role, to change this add 'vm_role: False'
 device_role:
@@ -64,37 +66,30 @@ rir:
 # IPAM: Roles provide segregation of networks (i.e prod, npe) holding VLANs and prefixes. By default VLANs within a group or prefixes in a VRF must be unique
 # ----------------------------------------------------------------------------
 role:
-- name: example_prod
-  descr: Production network
-  slug: prod
+- name: UTEST Role
+  descr: UTEST role description
   site:
-  - name: site1
+  - name: UTEST_site1
     vlan_grp:
-    - name: site1 vl group
-      slug: site1_vl_grp
+    - name: UTEST vl group
+      slug: utest_vl_grp
       descr: site1 vlan group
-      tenant: tenant1
+      tenant: UTEST_tenant1
       vlan:
-      - name: DATA_VL10
+      - name: UTEST_VL10
         id: 10
-        descr: NAS and servers
-        tenant: tenant2
+        descr: UTEST data
       vrf:
-      - name: GLOBAL
+      - name: UTEST VRF1
         rd: '65101:1'
-        descr: Global VRF
-        tenant: tenant1
+        descr: VRF1 description
+        tenant: UTEST_tenant1
         prefix:
         - pfx: 10.10.10.0/24
           vl: 10
           descr: Data VLAN
           pool: True
-          tenant: tenant2
-    vrf:
-    - name: AZU_NT_VNET1
-      prefix:
-      - pfx: 10.20.10.0/24
-        descr: NT-vnet1-mgmt
+          tenant: UTEST_tenant2
 
 # ----------------------------------------------------------------------------
 # CIRCUIT: Different types that can be associated to circuits. Only name is mandatory, slug and descr are optional
