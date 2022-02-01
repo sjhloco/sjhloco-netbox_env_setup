@@ -52,8 +52,8 @@ dvc_type_dir = os.path.expanduser(
 
 # For docker test environment
 token = "0123456789abcdef0123456789abcdef01234567"
-netbox_url = "http://10.10.10.104:8000/"
-# netbox_url = "http://10.103.40.120:8000/"
+# netbox_url = "http://10.10.10.104:8000/"
+netbox_url = "http://10.103.40.120:8000/"
 
 # ----------------------------------------------------------------------------
 # INZT_LOAD: Opens netbox connection and loads the variable file
@@ -362,8 +362,8 @@ class Organisation(Nbox):
         super().__init__(netbox_url, token)
         self.tenant = tenant
         self.rack_role = rack_role
-        self.tnt, self.site, self.loc = ([] for i in range(3))
-        self.rack, self.rr = ([] for i in range(2))
+        self.tnt, self.site, self.prnt_loc = ([] for i in range(3))
+        self.chld_loc, self.rack, self.rr = ([] for i in range(3))
 
     # 1a. TNT: Create Tenant dictionary
     def cr_tnt(self, each_tnt: Dict[str, Any]) -> Dict[str, Any]:
@@ -412,7 +412,9 @@ class Organisation(Nbox):
         )
         if parent != None:
             tmp_loc["parent"] = dict(name=parent)
-        self.loc.append(tmp_loc)
+            self.chld_loc.append(tmp_loc)
+        elif parent == None:
+            self.prnt_loc.append(tmp_loc)
 
         # 1d. RACK: Creates list of racks within the location
         if each_loc.get("rack") != None:
@@ -472,7 +474,8 @@ class Organisation(Nbox):
         return dict(
             tnt=self.tnt,
             site=self.site,
-            location=self.loc,
+            prnt_loc=self.prnt_loc,
+            chld_loc=self.chld_loc,
             rack=self.rack,
             rack_role=self.rr,
         )
@@ -954,14 +957,16 @@ def main():
     nbox = Nbox(netbox_url, token)
 
     # 1. ORG_TNT_SITE_RACK: Create all the organisation objects
-    # org = Organisation(my_vars["tenant"], my_vars["rack_role"])
-    # org_dict = org.create_tnt_site_rack()
+    org = Organisation(my_vars["tenant"], my_vars["rack_role"])
+    org_dict = org.create_tnt_site_rack()
     # # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
-    # nbox.engine("Rack Role", "dcim.rack_roles", "name", org_dict["rack_role"])
-    # nbox.engine("Tenant", "tenancy.tenants", "name", org_dict["tnt"])
-    # nbox.engine("Site", "dcim.sites", "name", org_dict["site"])
-    # nbox.engine("Location", "dcim.locations", "slug", org_dict["location"])
-    # nbox.engine("Rack", "dcim.racks", "name", org_dict["rack"])
+    nbox.engine("Rack Role", "dcim.rack_roles", "name", org_dict["rack_role"])
+    nbox.engine("Tenant", "tenancy.tenants", "name", org_dict["tnt"])
+    nbox.engine("Site", "dcim.sites", "name", org_dict["site"])
+    nbox.engine("Location (parent)", "dcim.locations", "slug", org_dict["prnt_loc"])
+    nbox.engine("Location (child)", "dcim.locations", "slug", org_dict["chld_loc"])
+    nbox.engine("Rack", "dcim.racks", "name", org_dict["rack"])
+
 
     # # 2. DVC_MTFR_TYPE: Create all the objects required to create devices
     # dvc = Devices(my_vars["device_role"], my_vars["manufacturer"])
@@ -973,16 +978,16 @@ def main():
     # nbox.engine("Device-type", "dcim.device_types", "model", dvc_dict["dev_type"])
 
     # 3. IPAM_VRF_VLAN: Create all the IPAM objects
-    ipam = Ipam(my_vars["rir"], my_vars["role"])
-    ipam_dict = ipam.create_ipam()
+    # ipam = Ipam(my_vars["rir"], my_vars["role"])
+    # ipam_dict = ipam.create_ipam()
 
     # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
     # nbox.engine("RIRs", "ipam.rirs", "name", ipam_dict["rir"])
     # nbox.engine("Aggregates", "ipam.aggregates", "prefix", ipam_dict["aggr"])
     # nbox.engine("Prefix/VLAN Role", "ipam.roles", "name", ipam_dict["role"])
     # nbox.engine("VLAN Group", "ipam.vlan-groups", "name", ipam_dict["vlan_grp"])
-    nbox.engine("VRF", "ipam.vrfs", "name", ipam_dict["vrf"])
-    nbox.print_tag_rt("Route-Targets", set(rt_exists), rt_created)
+    # nbox.engine("VRF", "ipam.vrfs", "name", ipam_dict["vrf"])
+    # nbox.print_tag_rt("Route-Targets", set(rt_exists), rt_created)
 
     # First check if VL/PFX exist in VL_GRP/VRF, then if exist in ROLE.
     # nbox.vlan_pfx_engine(
@@ -999,12 +1004,12 @@ def main():
     # )
 
     # # 4. CRT_PVDR: Create all the Circuit objects
-    crt = Circuits(my_vars["circuit_type"], my_vars["provider"])
-    crt_dict = crt.create_crt_pvdr()
+    # crt = Circuits(my_vars["circuit_type"], my_vars["provider"])
+    # crt_dict = crt.create_crt_pvdr()
     # # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
     # nbox.engine("Circuit Type", "circuits.circuit-types", "name", crt_dict["crt_type"])
     # nbox.engine("Provider", "circuits.providers", "name", crt_dict["pvdr"])
-    nbox.engine("Circuit", "circuits.circuits", "cid", crt_dict["crt"])
+    # nbox.engine("Circuit", "circuits.circuits", "cid", crt_dict["crt"])
 
     # # 5. VIRTUAL: Creates all the Cluster objects
     # vrtl = Virtualisation(my_vars["cluster_group"], my_vars["cluster_type"])
