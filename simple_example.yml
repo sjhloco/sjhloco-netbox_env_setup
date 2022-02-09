@@ -1,159 +1,128 @@
-########################################## INFO ##########################################
-# This example shows a minimun install with mostly mandatory and the odd optional setting
-
-# !!!!  CHAnGE TAGSto {rack2: 9e9e9e}
-chnage rack group to location
-
-########################################## ORGANISATION ##########################################
-## ORG: Each customer is a tenant with its associated sites (optional). Sites hold rack-groups (optional) which in turn hold racks
-tenant:
-- name: EvilCorp
-  site:
-  - name: DC1
-    descr: London DC
-    addr: Docklands, London
-    contact:  Dr Evil
-    email: evil@corp.com
-    rack_grp:
-    - name: DC1 Floor1
-      slug: dc1_fl1
-      rack:
-      - {name: DC1-FL1-A1, role: patching}
-      - {name: DC1_FL1_B1, role: network}
-  - name: aws
-    descr: AWS cloud environment
-    addr: Europe, London
-    ASN: 7224
-
-## RACK_ROLE: The role of the rack. Only needed if it is defined under the rack. slug, color, and descr are optional
-rack_role:
-  - {name: patching, slug: patching, color: c0c0c0, descr: Patch Panels for rack links and ISP}
-  - {name: network, slug: network, color: aa1409, descr: Network equipment}
-  - {name: compute, slug: compute, color: 4caf50, descr: Blade chassis and servers}
-
-########################################## DEVICES ##########################################
-# DVC: Each manufactor optionally holds device types (defines device info such as interfaces) and the platform (driver used by NAPALM)
-manufacturer:
-- name: Cisco
-  platform:
-    - name: ASA
-    - name: IOS
-    - {name: IOS-XR, driver: iosxr }
-  device_type:
-    - asa5506X.yaml
-    - ws_c3560cx_12pcs.yaml
-- name: F5
-  platform:
-  - {name: BIGIP, driver: f5 }
-- name: Excel
-  device_type:
-    - pp_copper_1u.yaml
-    - pp_copper_2u.yaml
-
-# DVC_ROLE: Roles of devices. slug, colour, descr and vm_role are optional. By default VMs can be assigned to a device_role, to change this add 'vm_role: False'
-device_role:
-  - {name: cabling, color: c0c0c0, descr: Patch Panels, vm_role: False}
-  - {name: router, color: aa1409, descr: Routers and combined wifi/switch/router}
-  - {name: firewall, color: f44336, descr: L3-7 edge and internal firewalls}
-  - {name: switch, color: 2196f3,  descr: L2 and L3 switches}
-
-########################################## IPAM ##########################################
-# RIR: Each governing body (including RFC1918) and your public address ranges (aggregates) assigned by them
-rir:
-  - name: AfriNIC
-    descr: African region
-  - name: APNIC
-    descr: Asia Pacific region
-  - name: ARIN
-    descr: North America and several Caribbean and North Atlantic islands
-  - name: LAACNIC
-    descr: Latin America and the Caribbean
-  - name: RIPE_NCC
-    descr: Europe, the Middle East, and parts of Central Asia
-  - name: RFC1918
-    descr:  RFC 1918 Private address ranges
-    is_private: True
-    ranges:
-    - {prefix: 10.0.0.0/8, descr: Class A private address range}
-    - {prefix: 172.16.0.0/12, descr: Class B private address range}
-    - {prefix: 192.168.0.0/16, descr: Class C private address range}
 
 
-# IPAM: Roles provide segregation of networks (i.e prod, npe) holding VLANs and prefixes. By default VLANs within a group or prefixes in a VRF must be unique
-role:
-- name: EvilCorp
-  descr: DC and Cloud
-  site:
-  - name: DC1
-    vlan_grp:
-    - name: DC1_VLANs
-      vlan:
-      - name: DC1_INET_VL99
-        id: 99
-        descr: Transit to Internet
-      - name: DC1_MGMT_VL10
-        id: 10
-        descr: Management and iLO
-      - name: DC1_COMPUTE_VL20
-        id: 20
-        descr: Servers and storage
-      vrf:
-      - name: DC1_RED
-        descr: DMZ and INET
-        prefix:
-        - pfx: 192.168.1.0/24
-          vl: 99
-      - name: DC1_BLU
-        descr: Production Network
-        rd: '65102:1'
-        role: stesworld
-        prefix:
-        - pfx: 10.10.10.0/24
-          vl: 10
-        - pfx: 10.10.20.0/24
-          vl: 20
-  - name: aws
-    vrf:
-    - name: AWS_NT_VNET1
-      prefix:
-      - pfx: 10.20.10.0/24
-        descr: NT-vnet1-mgmt
-      - pfx: 10.20.20.0/24
-        descr: NT-vnet1-data
+# ########################################## DEVICES ##########################################
+# # DVC: Each manufactor optionally holds device types (defines device info such as interfaces) and the platform (driver used by NAPALM)
+# manufacturer:
+# - name: Cisco
+#   platform:
+#     - name: ASA
+#     - name: IOS
+#     - {name: IOS-XR, driver: iosxr }
+#   device_type:
+#     - asa5506X.yaml
+#     - ws_c3560cx_12pcs.yaml
+# - name: F5
+#   platform:
+#   - {name: BIGIP, driver: f5 }
+# - name: Excel
+#   device_type:
+#     - pp_copper_1u.yaml
+#     - pp_copper_2u.yaml
 
-########################################## Circuits ##########################################
-## CIRCUIT TYPE: Different types that can be associated to circuits. Only name is mandatory, slug and descr are optional
-circuit_type:
-  - { name: Broadband, slug: adsl }
-  - { name: Carrier Ethernet}
-  - { name: Dedicated Cloud Access, slug: dca, descr: Dedicated circuit for a cloud provider }
+# # DVC_ROLE: Roles of devices. slug, colour, descr and vm_role are optional. By default VMs can be assigned to a device_role, to change this add 'vm_role: False'
+# device_role:
+#   - {name: cabling, color: c0c0c0, descr: Patch Panels, vm_role: False}
+#   - {name: router, color: aa1409, descr: Routers and combined wifi/switch/router}
+#   - {name: firewall, color: f44336, descr: L3-7 edge and internal firewalls}
+#   - {name: switch, color: 2196f3,  descr: L2 and L3 switches}
 
-## PROVIDER: Supplier whom provides some form of connectivity.
-provider:
-- name: Plusnet
-  account_num: Davy Crockett
-  portal_url: https://www.plus.net/member-centre/login
-  circuit:
-    - cid: plusnet_hme
-      type: Broadband
+# ########################################## IPAM ##########################################
+# # RIR: Each governing body (including RFC1918) and your public address ranges (aggregates) assigned by them
+# rir:
+#   - name: AfriNIC
+#     descr: African region
+#   - name: APNIC
+#     descr: Asia Pacific region
+#   - name: ARIN
+#     descr: North America and several Caribbean and North Atlantic islands
+#   - name: LAACNIC
+#     descr: Latin America and the Caribbean
+#   - name: RIPE_NCC
+#     descr: Europe, the Middle East, and parts of Central Asia
+#   - name: RFC1918
+#     descr:  RFC 1918 Private address ranges
+#     is_private: True
+#     ranges:
+#     - {prefix: 10.0.0.0/8, descr: Class A private address range}
+#     - {prefix: 172.16.0.0/12, descr: Class B private address range}
+#     - {prefix: 192.168.0.0/16, descr: Class C private address range}
 
-########################################## Virtualization ##########################################
-## CLUSTER GROUP: Can be used to add optionl grouping, for example region or a client
-cluster_group:
-  - { name: AWS_SUB1, slug: aws_sub1 }
 
-cluster_type:
-  - name: AWS
-    site: aws
-    group: AWS_SUB1
-    tags: [aws]
-    cluster:
-    - name: AWS UK West
-      comment: test comments
-  - name: vSphere
-    cluster:
-    - name: ESX DC1
-      site: DC1
+# # IPAM: Roles provide segregation of networks (i.e prod, npe) holding VLANs and prefixes. By default VLANs within a group or prefixes in a VRF must be unique
+# role:
+# - name: EvilCorp
+#   descr: DC and Cloud
+#   site:
+#   - name: DC1
+#     vlan_grp:
+#     - name: DC1_VLANs
+#       vlan:
+#       - name: DC1_INET_VL99
+#         id: 99
+#         descr: Transit to Internet
+#       - name: DC1_MGMT_VL10
+#         id: 10
+#         descr: Management and iLO
+#       - name: DC1_COMPUTE_VL20
+#         id: 20
+#         descr: Servers and storage
+#       vrf:
+#       - name: DC1_RED
+#         descr: DMZ and INET
+#         prefix:
+#         - pfx: 192.168.1.0/24
+#           vl: 99
+#       - name: DC1_BLU
+#         descr: Production Network
+#         rd: '65102:1'
+#         role: stesworld
+#         prefix:
+#         - pfx: 10.10.10.0/24
+#           vl: 10
+#         - pfx: 10.10.20.0/24
+#           vl: 20
+#   - name: aws
+#     vrf:
+#     - name: AWS_NT_VNET1
+#       prefix:
+#       - pfx: 10.20.10.0/24
+#         descr: NT-vnet1-mgmt
+#       - pfx: 10.20.20.0/24
+#         descr: NT-vnet1-data
+
+# ########################################## Circuits ##########################################
+# ## CIRCUIT TYPE: Different types that can be associated to circuits. Only name is mandatory, slug and descr are optional
+# circuit_type:
+#   - { name: Broadband, slug: adsl }
+#   - { name: Carrier Ethernet}
+#   - { name: Dedicated Cloud Access, slug: dca, descr: Dedicated circuit for a cloud provider }
+
+# ## PROVIDER: Supplier whom provides some form of connectivity.
+# provider:
+# - name: Plusnet
+#   account_num: Davy Crockett
+#   portal_url: https://www.plus.net/member-centre/login
+#   circuit:
+#     - cid: plusnet_hme
+#       type: Broadband
+
+# ########################################## Virtualization ##########################################
+# ## CLUSTER GROUP: Can be used to add optionl grouping, for example region or a client
+# cluster_group:
+#   - { name: AWS_SUB1, slug: aws_sub1 }
+
+# cluster_type:
+#   - name: AWS
+#     site: aws
+#     group: AWS_SUB1
+#     tags: [aws]
+#     cluster:
+#     - name: AWS UK West
+#       comment: test comments
+#   - name: vSphere
+#     cluster:
+#     - name: ESX DC1
+#       site: DC1
 
 
 

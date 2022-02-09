@@ -1,5 +1,5 @@
 sw = {
-    "manufacturer": {"name": "cisco"},
+    "manufacturer": {"name": "UTEST manufacturer"},
     "model": "Catalyst 3560-CX-12PC-S",
     "slug": "ws-c3560cx-12pc-s",
     "part_number": "WS-C3560CX-12PC-S",

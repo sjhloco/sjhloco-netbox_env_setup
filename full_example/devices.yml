@@ -1,0 +1,32 @@
+# This example shows all the options that are possible to be defined
+# Mandatory dictionaries must be defined and Optional are at your discretion
+
+# ----------------------------------------------------------------------------
+# DEVICES: Manufacturer, platform, device_type and device role
+# ----------------------------------------------------------------------------
+# MFTR: Each manufacture optionally holds device types (defines device info such as interfaces) and the platform (driver used by NAPALM)
+manufacturer:                           # Mandatory - List of all device manufacturers
+  - name: Cisco                         # Mandatory - Name of the manufacturer
+    slug: cisco                         # Optional
+    descr: All Cisco devices            # Optional
+    # PLTM: Used for NAPALM. driver and slug optional, if driver not defined uses the name
+    platform:                           # Optional
+      - {name: ASA, slug: asa, driver: asa }
+      - {name: IOS-XR, slug: ios_xr, driver: iosxr }
+      - {name: IOS, slug: ios, driver: ios }
+    # DVC_TYPE: Predefined in yaml files that follow community library format (stored in device_types directory)
+    device_type:                        # Optional
+      - asa5506X.yaml
+      - asa5505.yaml
+      - ws_c3560cx_12pcs.yaml
+  - name: Excel
+    slug: excel
+    descr: All patch panels
+    device_type:
+      - pp_copper_1u.yaml
+
+# DVC_ROLE: Roles of devices. slug, colour, descr and vm_role are optional. By default VMs can be assigned to a device_role, to change this add 'vm_role: False'
+device_role:
+  - {name: cabling, slug: cbl, color: c0c0c0, descr: Patch Panels, vm_role: False}
+  - {name: router, slug: rtr, color: aa1409, descr: Routers and combined wifi/switch/router, vm_role: True}
+  - {name: firewall, slug: fw, color: f44336, descr: L3-7 edge and internal firewalls, vm_role: True}

@@ -5,19 +5,18 @@ This script is not idempotent. Its purpose to add objects rather than edit or de
 The environment is defined in a YAML file that follows the hierarchical structure of NetBox.
 The script also follows this structure allowing for subsections of the environment to be created or additions to an already pre-existing environment.
 
-Under the engine you can hash out a section so it only runs the sectiosn you want to create objects for.
+Under the engine you can hash out a section so it only runs the sections you want to create objects for.
 -1. ORG_TNT_SITE_RACK: Create all the organisation objects
 -2. DVC_MTFR_TYPE: Create all the objects required to create devices
 -3. IPAM_VRF_VLAN: Create all the IPAM objects
 -4. CRT_PVDR: Create all the Circuit objects
 -5. VIRTUAL: Creates all the Cluster objects
+-5. CONTACT: Creates all the Contact objects and associates them
 
 It is advisable to run the validation script against the input file to ensure the formatting of the input file is correct
 python input_validate.py test.yml
 python nbox_env_setup.py simple_example.yml
 """
-
-from pprint import pprint
 
 # import config
 from typing import Any, Dict, List
@@ -33,6 +32,8 @@ from rich.console import Console
 from rich.theme import Theme
 import ipdb
 from collections import defaultdict
+from pprint import pprint
+
 
 # ----------------------------------------------------------------------------
 # Variables to change dependant on environment
@@ -53,7 +54,8 @@ dvc_type_dir = os.path.expanduser(
 # For docker test environment
 token = "0123456789abcdef0123456789abcdef01234567"
 # netbox_url = "http://10.10.10.104:8000/"
-netbox_url = "http://10.103.40.120:8000/"
+# netbox_url = "http://10.103.40.120:8000/"
+netbox_url = "http://10.30.10.104:8000/"
 
 # ----------------------------------------------------------------------------
 # INZT_LOAD: Opens netbox connection and loads the variable file
@@ -72,9 +74,13 @@ class Nbox:
     ) -> Dict[str, Dict]:
         # Creates 2 lists of DMs based on whether the object already exists or not
         obj_notexist_dm, obj_exist_name = ([] for i in range(2))
-
         for each_obj_dm in obj_dm:
-            fltr = {obj_fltr: each_obj_dm[obj_fltr]}
+            # For checking contact assignment as uses complex filter
+            if obj_fltr == "multi-fltr":
+                fltr = each_obj_dm["chk_fltr"]
+            # For checking all other contacts
+            else:
+                fltr = {obj_fltr: each_obj_dm[obj_fltr]}
             if operator.attrgetter(api_attr)(self.nb).get(**fltr) == None:
                 obj_notexist_dm.append(each_obj_dm)
             else:
@@ -84,6 +90,7 @@ class Nbox:
                     )
                 else:
                     obj_exist_name.append(each_obj_dm[obj_fltr])
+
         return dict(notexist_dm=obj_notexist_dm, exist_name=obj_exist_name)
 
     # ----------------------------------------------------------------------------
@@ -167,7 +174,6 @@ class Nbox:
                         operator.attrgetter(api)(self.nb.dcim).create(each_type[cmpt])
                     # front-port needs rear_port ID (using device_type ID) to get the  to map front to rear ports (patch-panels)
                     elif cmpt == "front_port":
-                        # breakpoint()
                         dt_id = self.nb.dcim.device_types.get(slug=each_type["slug"]).id
                         for port in each_type[cmpt]:
                             port["rear_port"] = list(
@@ -176,7 +182,7 @@ class Nbox:
                                 )
                             )[0].id
                         operator.attrgetter(api)(self.nb.dcim).create(each_type[cmpt])
-                cmpt_created.append(cmpt)
+                    cmpt_created.append(cmpt)
             return cmpt_created
         # DEV_TYPE_COMP_ERR: If dev_type component was not able to be created returns an error message
         except RequestError as e:
@@ -226,74 +232,172 @@ class Nbox:
         self.result_msg(output_name, obj_exist_name, all_result)
 
     # ----------------------------------------------------------------------------
-    # VLAN/PFX ENGINE: Checks VL_GRP and VRF exist and gets ID used to create VLAN or prefix
+    # VLGRP/VRF_ID: Gets the ID for the VLAN Groups and Prefix VRFs
     # ----------------------------------------------------------------------------
-    def vlan_pfx_engine(
-        self, output_name: str, api_attr: str, obj_fltr: str, obj_dm: Dict[str, Any]
+    def get_vlgrp_vrf_id(
+        self,
+        api_attr: str,
+        obj_fltr: str,
+        obj_dm: Dict[str, Any],
+        error: Dict[str, List],
     ) -> Dict[str, Any]:
-        obj_notexist_dm, obj_exist_name = ([] for i in range(2))
         # VL_GRP/VRF EXIST: Checks if VLAN_GRP or VRF exists, if so gets the id
-        for each_obj_dm in obj_dm:
-            obj_name = each_obj_dm[obj_fltr[1].split("_")[0]]["name"]
-            if operator.attrgetter(api_attr[1])(self.nb).get(name=obj_name) != None:
-                obj_id = operator.attrgetter(api_attr[1])(self.nb).get(name=obj_name).id
-                # VLAN/PFX EXIST: Uses ID to check if VLAN or PFX already exists in VL_GRP or PFX in the VRF
-                fltr = {
-                    obj_fltr[0]: each_obj_dm[obj_fltr[0]],
-                    obj_fltr[1]: obj_id,
-                }
-                # If the VLAN or PFX does not exist adds dict to non-exist list, if does adds name to exist list
-                if list(operator.attrgetter(api_attr[0])(self.nb).filter(**fltr)) == []:
-                    obj_notexist_dm.append(each_obj_dm)
-                else:
-                    obj_exist_name.append(each_obj_dm[obj_fltr[0]])
-            # ERROR: If VRF or VL_GRP dont exist prints message (cant create VLAN/PFX without them)
-            elif operator.attrgetter(api_attr[1])(self.nb).get(name=obj_name) == None:
-                api_name = api_attr[1].split(".")[1][:-1]
-                obj_type = each_obj_dm[obj_fltr[0]]
-                self.rc.print(
-                    f":x: [b]{output_name}[/b]: {obj_type} - The {api_name} '{obj_name}' for this {output_name.lower()} does not exist"
-                )
-        # PREFIX_VLAN: If is a Prefix associated to a VLAN checks against VL_GRP and role to get the unique ID
-        if api_attr[0] == "ipam.prefixes":
-            for each_obj_dm in reversed(obj_notexist_dm):
-                # GET_VLAN_ID: If vl_grp exists gets the VLAN ID and add it to the dict
-                if each_obj_dm.get("vlan") != None:
-                    vlan = each_obj_dm["vlan"]
-                    vl_grp = each_obj_dm["vl_grp"]["name"]
-                    # Need to first get the slug as needed for group filter in next 2 cmds
-                    vl_grp_slug = self.nb.ipam.vlan_groups.get(name=vl_grp)["slug"]
-                    if self.nb.ipam.vlans.get(vid=vlan, group=vl_grp_slug) != None:
+        grp_vrf_name = obj_dm[obj_fltr[1].split("_")[0]]["name"]
+        if operator.attrgetter(api_attr[1])(self.nb).get(name=grp_vrf_name) != None:
+            obj_id = operator.attrgetter(api_attr[1])(self.nb).get(name=grp_vrf_name).id
+            # VLAN/PFX FLTR: Creates filter of IDs to check if VLAN or PFX already exists in VL_GRP or  VRF
+            fltr = {
+                obj_fltr[0]: obj_dm[obj_fltr[0]],
+                obj_fltr[1]: obj_id,
+            }
+            obj_dm["chk_fltr"] = fltr
+            # Used to by object_chk to add name of VLAN/PFX to exist list (obj["exist_name"])
+            obj_dm["multi-fltr"] = obj_dm[obj_fltr[0]]
+            return obj_dm
+        # ERROR: If VRF or VL_GRP dont exist collects details for message (cant create VLAN/PFX without them)
+        elif operator.attrgetter(api_attr[1])(self.nb).get(name=grp_vrf_name) == None:
+            vl_pfx_name = obj_dm[obj_fltr[0]]
+            error[grp_vrf_name].append(vl_pfx_name)
 
-                        each_obj_dm["vlan"] = dict(
-                            id=self.nb.ipam.vlans.get(vid=vlan, group=vl_grp_slug).id
-                        )
-                    # VLAN_NOT_EXIST: If the vlan does not exists prints an error and removes the prefix
-                    else:
-                        obj_notexist_dm.remove(each_obj_dm)
-                        pfx = each_obj_dm["prefix"]
-                        self.rc.print(
-                            f":x: [b]{output_name}[/b]: {pfx} - VLAN '{vlan}' in VLAN Group '{vl_grp}' does not exist"
-                        )
-        # Creates the VLANs and Prefixes
-        self.obj_create(output_name, api_attr[0], obj_notexist_dm, obj_exist_name)
+    # ----------------------------------------------------------------------------
+    # PREFIX_VLAN: If is a Prefix associated to a VLAN checks against VL_GRP and role to get the unique ID
+    # ----------------------------------------------------------------------------
+    def get_vl_pfx_id(
+        self, obj_dm: Dict[str, Any], error: Dict[str, List]
+    ) -> Dict[str, Any]:
+        if obj_dm.get("vlan") == None:
+            return obj_dm
+        # GET_VLAN_ID: If pfx has a vlan, if vl_grp exists gets the VLAN ID and add it to the dict
+        elif obj_dm.get("vlan") != None:
+            vlan = obj_dm["vlan"]
+            vl_grp = obj_dm["vl_grp"]
+            try:
+                vl_grp_slug = self.nb.ipam.vlan_groups.get(name=vl_grp)["slug"]
+                obj_dm["vlan"] = self.nb.ipam.vlans.get(vid=vlan, group=vl_grp_slug).id
+                return obj_dm
+            # VLAN_NOT_EXIST: If the vlan does not exists collects details for message
+            except:
+                pfx = obj_dm["prefix"]
+                error[vl_grp].append(f"{pfx} 'VLAN {vlan}'")
 
+    # ----------------------------------------------------------------------------
+    # CNT_ASGN_ID: Gets the ID for the assignment objects and contacts
+    # ----------------------------------------------------------------------------
+    def get_cnt_asgn_id(
+        self, asgn: Dict[str, Any], api_fltr: str, error: List
+    ) -> Dict[str, Any]:
+        api = asgn["content_type"] + "s"
+        tmp_asgn = []
+        # GET_ID: Get ID of the object the contact is to be assigned to
+        try:
+            obj_id = (
+                operator.attrgetter(api)(self.nb)
+                .get(**{api_fltr: asgn["object_id"]})
+                .id
+            )
+            for each_cnt in asgn["contact"]:
+                # GET_CNT_ID: Get ID of each contact
+                try:
+                    cnt_id = self.nb.tenancy.contacts.get(name=each_cnt).id
+                    asgn_copy = asgn.copy()
+                    asgn_copy["object_id"] = obj_id
+                    asgn_copy["contact"] = cnt_id
+                    # CHK: Create dictionary used for checking if assignment already exists
+                    asgn_copy["chk_fltr"] = {
+                        "content_type": asgn["content_type"],
+                        "object_id": obj_id,
+                        "contact_id": cnt_id,
+                    }
+                    # IDNTY: Used to identify obj in the already exist list (obj["exist_name"])
+                    asgn_copy[
+                        "multi-fltr"
+                    ] = f"{each_cnt} {asgn['object_id']} ({asgn['content_type'].split('.')[1]})"
+                    tmp_asgn.append(asgn_copy)
+                except:
+                    error.append(f"content - {each_cnt}")
+        except:
+            error.append(f"{asgn['content_type'].split('.')[1]} - {asgn['object_id']}")
+
+        return tmp_asgn
+
+    # ----------------------------------------------------------------------------
     # NBOX_ENGINE: Checks existence of objects and creates them if they do not exist
+    # ----------------------------------------------------------------------------
     def engine(
         self, output_name: str, api_attr: str, obj_fltr: str, obj_dm: Dict[str, Any]
     ) -> None:
-        # Check object exists
-        obj = self.obj_check(api_attr, obj_fltr, obj_dm)
-        # Create objects
-        if output_name == "Device-type":
-            self.dev_type_create(
-                output_name, api_attr, obj["notexist_dm"], obj["exist_name"]
-            )
-        else:
-            self.obj_create(
-                output_name, api_attr, obj["notexist_dm"], obj["exist_name"]
-            )
+        # VL-GRP/VRF: Check object exists and get ID which is used when creating VLAN/PFX. Merges error message for all VL-GRP/VRF
+        if output_name == "VLAN" or output_name == "Prefix":
+            tmp_obj_dm = []
+            err = defaultdict(list)
+            for each_obj_dm in obj_dm:
+                tmp = self.get_vlgrp_vrf_id(api_attr, obj_fltr, each_obj_dm, err)
+                if tmp != None:
+                    tmp_obj_dm.append(tmp)
+            if len(err) != 0:
+                api_name = api_attr[1].split(".")[1][:-1]
+                for vlgrp_vrf, vl_pfx in err.items():
+                    self.rc.print(
+                        f":x: [b]{output_name}[/b]: {', '.join(set(vl_pfx))} - The {api_name} '{vlgrp_vrf}' for this {output_name.lower()} does not exist"
+                    )
+            obj_dm = tmp_obj_dm
+            api_attr = api_attr[0]
+            obj_fltr = "multi-fltr"
 
+        # CNT_ASGN: Has to gather object IDs for contact assignment. Merges error message for all CNT ASGN
+        elif output_name == "Contact Assignment":
+            tmp_obj_dm, err = ([] for i in range(2))
+            for each_asgn in obj_dm:
+                # NAME: Try get ID of the object the contact is to be assigned to using object name
+                try:
+                    tmp_obj_dm.extend(self.get_cnt_asgn_id(each_asgn, "name", err))
+                except:
+                    # SLUG: Try get ID of the object the contact is to be assigned to using object slug
+                    try:
+                        tmp_obj_dm.extend(self.get_cnt_asgn_id(each_asgn, "slug", err))
+                    # If cant get the ID add object to error list
+                    except:
+                        err.append(
+                            f"{each_asgn['content_type'].split('.')[1]} - {each_asgn['object_id']}"
+                        )
+            if len(err) != 0:
+                self.rc.print(
+                    f":x: [b]{output_name}[/b]: Can't get the ID for the name or slug of: '{', '.join(set(err))}'"
+                )
+            obj_dm = tmp_obj_dm
+
+        # CHK_OBJ: Check if object already exists.
+        if len(obj_dm) != 0:
+            obj = self.obj_check(api_attr, obj_fltr, obj_dm)
+
+            # PRF_VL: If prefix is associated with vlan gets vlan ID. Merges error message for all VL/PFX
+            if api_attr == "ipam.prefixes":
+                tmp_obj = []
+                err = defaultdict(list)
+                for each_obj_dm in obj["notexist_dm"]:
+                    tmp = self.get_vl_pfx_id(each_obj_dm, err)
+                    if tmp != None:
+                        tmp_obj.append(tmp)
+                if len(err) != 0:
+                    for vlgrp, pfx_vl in err.items():
+                        self.rc.print(
+                            f":x: [b]{output_name}[/b]: {', '.join(set(pfx_vl))} in VLAN Group '{vlgrp}' does not exist"
+                        )
+                obj["notexist_dm"] = tmp_obj
+
+            # CRTE_OBJ: Creates all objects
+            if output_name == "Device-type":
+                self.dev_type_create(
+                    output_name, api_attr, obj["notexist_dm"], obj["exist_name"]
+                )
+            else:
+                self.obj_create(
+                    output_name, api_attr, obj["notexist_dm"], obj["exist_name"]
+                )
+
+    # ----------------------------------------------------------------------------
+    # Methods that that provide Netbox interaction for DM building classes
+    # ----------------------------------------------------------------------------
     # TAGS: Gathers ID of existing tag or creates new one and returns ID (list of IDs)
     def get_or_create_tag(self, tag: Dict[str, Any]) -> List:
         tags = []
@@ -347,7 +451,7 @@ class Nbox:
         return obj.replace(" ", "_").lower()
 
     # TNT: Gets the tennat name for a a site fed into it (if API call fails leaves blank)
-    def get_tnt(self, site: Dict[str, Any]) -> str:
+    def get_tnt(self, site: str) -> str:
         try:
             return dict(self.nb.dcim.sites.get(name=site))["tenant"]["name"]
         except:
@@ -386,9 +490,6 @@ class Organisation(Nbox):
             time_zone=each_site.get("time_zone", "UTC"),
             description=each_site.get("descr", ""),
             physical_address=each_site.get("addr", ""),
-            contact_name=each_site.get("contact", ""),
-            contact_phone=each_site.get("phone", ""),
-            contact_email=each_site.get("email", ""),
             tags=self.get_or_create_tag(each_site.get("tags")),
         )
         if each_site.get("ASN") != None:
@@ -715,7 +816,7 @@ class Ipam(Nbox):
             tags=self.get_or_create_tag(each_pfx.get("tags")),
         )
         if vlgrp != None:
-            tmp_pfx["vl_grp"] = dict(name=vlgrp)
+            tmp_pfx["vl_grp"] = vlgrp
         if each_pfx.get("vl") != None:
             tmp_pfx["vlan"] = each_pfx["vl"]
         return tmp_pfx
@@ -942,6 +1043,103 @@ class Virtualisation(Nbox):
         return dict(cltr_type=self.cltr_type, cltr=self.cltr, cltr_grp=self.cltr_grp)
 
 
+# ----------------------------------------------------------------------------
+# 6. CONTACTS: Creates the DM for organisation objects contacts, groups, roles and assignment
+# ----------------------------------------------------------------------------
+class Contacts(Nbox):
+    def __init__(
+        self, contact_role: List, contact_grp: List, contact_assign: List
+    ) -> None:
+        super().__init__(netbox_url, token)
+        self.contact_role = contact_role
+        self.contact_grp = contact_grp
+        self.contact_assign = contact_assign
+        self.cnt_role, self.cnt_grp, self.cnt, self.cnt_asgn = ([] for i in range(4))
+
+    # 6a. CNT_ROLE: List of contact roles
+    def cr_cnt_role(self, each_role: Dict[str, Any]) -> Dict[str, Any]:
+        return dict(
+            name=each_role["name"],
+            slug=each_role.get("slug", self.make_slug(each_role["name"])),
+            description=each_role.get("descr", ""),
+            tags=self.get_or_create_tag(each_role.get("tags")),
+        )
+
+    # 6b. CNT_GRP: List of contact groups
+    def cr_cnt_grp(self, each_grp: Dict[str, Any]) -> Dict[str, Any]:
+        return dict(
+            name=each_grp["name"],
+            slug=each_grp.get("slug", self.make_slug(each_grp["name"])),
+            description=each_grp.get("descr", ""),
+            parent=None,
+            tags=self.get_or_create_tag(each_grp.get("tags")),
+        )
+
+    # 6c. CNT: List of contacts
+    def cr_cnt(self, grp: str, each_cnt: Dict[str, Any]) -> Dict[str, Any]:
+        tmp_cnt = dict(
+            name=each_cnt["name"],
+            group=dict(name=grp),
+            tags=self.get_or_create_tag(each_cnt.get("tags")),
+        )
+        # Optional settings tjhat would break call if set to null
+        if each_cnt.get("phone") != None:
+            tmp_cnt["phone"] = each_cnt["phone"]
+        if each_cnt.get("addr") != None:
+            tmp_cnt["address"] = each_cnt["addr"]
+        if each_cnt.get("email") != None:
+            tmp_cnt["email"] = each_cnt["email"]
+        if each_cnt.get("comments") != None:
+            tmp_cnt["comments"] = each_cnt["comments"]
+        return tmp_cnt
+
+    # 6d. ASGN: List of contact assignments
+    def cr_cnt_asgn(self, each_asgn: Dict[str, Any]) -> Dict[str, Any]:
+        tmp_asgn = []
+        for obj_type, obj in each_asgn["assign_to"].items():
+            if "circuit" in obj_type or "provider" in obj_type:
+                api = "circuits." + obj_type
+            elif "tenant" in obj_type:
+                api = "tenancy." + obj_type
+            elif "cluster" in obj_type:
+                api = "virtualization." + obj_type
+            else:
+                api = "dcim." + obj_type
+            tmp_asgn.append(
+                dict(
+                    content_type=api,
+                    object_id=obj,
+                    contact=each_asgn["contact"],
+                    role={"name": each_asgn["role"]},
+                    priority=each_asgn.get("priority", "primary"),
+                )
+            )
+        return tmp_asgn
+
+    # ENGINE: Runs all the other methods in this class to create dict used to create nbox objects
+    def create_contact(self) -> Dict[str, Any]:
+        # 6a. ROLE: Creates the Rack roles dictionary that can be used by a rack.
+        for each_role in self.contact_role:
+            self.cnt_role.append(self.cr_cnt_role(each_role))
+        # 6b. GRP: Create contact group
+        for each_grp in self.contact_grp:
+            self.cnt_grp.append(self.cr_cnt_grp(each_grp))
+            # 6c. CNT: Creates contact
+            if each_grp.get("contact") != None:
+                for each_cnt in each_grp["contact"]:
+                    self.cnt.append(self.cr_cnt(each_grp["name"], each_cnt))
+        # 6d ASGN: Assigns contact and role to an object
+        for each_asgn in self.contact_assign:
+            self.cnt_asgn.extend(self.cr_cnt_asgn(each_asgn))
+        # The Data Models returned to the main method that are used to create the object
+        return dict(
+            cnt_role=self.cnt_role,
+            cnt_grp=self.cnt_grp,
+            cnt=self.cnt,
+            cnt_asgn=self.cnt_asgn,
+        )
+
+
 ######################## ENGINE: Runs the methods of the script ########################
 # Used by all object creations so have to be created outside of classes and outside main() or is missing for pytest
 global tag_exists, tag_created, rt_exists, rt_created
@@ -959,7 +1157,7 @@ def main():
     # 1. ORG_TNT_SITE_RACK: Create all the organisation objects
     org = Organisation(my_vars["tenant"], my_vars["rack_role"])
     org_dict = org.create_tnt_site_rack()
-    # # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
+    # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
     nbox.engine("Rack Role", "dcim.rack_roles", "name", org_dict["rack_role"])
     nbox.engine("Tenant", "tenancy.tenants", "name", org_dict["tnt"])
     nbox.engine("Site", "dcim.sites", "name", org_dict["site"])
@@ -967,11 +1165,10 @@ def main():
     nbox.engine("Location (child)", "dcim.locations", "slug", org_dict["chld_loc"])
     nbox.engine("Rack", "dcim.racks", "name", org_dict["rack"])
 
-
-    # # 2. DVC_MTFR_TYPE: Create all the objects required to create devices
+    # 2. DVC_MTFR_TYPE: Create all the objects required to create devices
     # dvc = Devices(my_vars["device_role"], my_vars["manufacturer"])
     # dvc_dict = dvc.create_dvc_type_role()
-    # # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
+    # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
     # nbox.engine("Device-role", "dcim.device_roles", "name", dvc_dict["dev_role"])
     # nbox.engine("Manufacturer", "dcim.manufacturers", "name", dvc_dict["mftr"])
     # nbox.engine("Platform", "dcim.platforms", "name", dvc_dict["pltm"])
@@ -981,22 +1178,21 @@ def main():
     # ipam = Ipam(my_vars["rir"], my_vars["role"])
     # ipam_dict = ipam.create_ipam()
 
-    # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
+    # # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
     # nbox.engine("RIRs", "ipam.rirs", "name", ipam_dict["rir"])
     # nbox.engine("Aggregates", "ipam.aggregates", "prefix", ipam_dict["aggr"])
     # nbox.engine("Prefix/VLAN Role", "ipam.roles", "name", ipam_dict["role"])
     # nbox.engine("VLAN Group", "ipam.vlan-groups", "name", ipam_dict["vlan_grp"])
     # nbox.engine("VRF", "ipam.vrfs", "name", ipam_dict["vrf"])
     # nbox.print_tag_rt("Route-Targets", set(rt_exists), rt_created)
-
-    # First check if VL/PFX exist in VL_GRP/VRF, then if exist in ROLE.
-    # nbox.vlan_pfx_engine(
+    # # First check if VL/PFX exist in VL_GRP/VRF, then if exist in ROLE.
+    # nbox.engine(
     #     "VLAN",
     #     ["ipam.vlans", "ipam.vlan_groups"],
     #     ["name", "group_id"],
     #     ipam_dict["vlan"],
     # )
-    # nbox.vlan_pfx_engine(
+    # nbox.engine(
     #     "Prefix",
     #     ["ipam.prefixes", "ipam.vrfs"],
     #     ["prefix", "vrf_name"],
@@ -1023,8 +1219,23 @@ def main():
     # )
     # nbox.engine("Cluster", "virtualization.clusters", "name", vrtl_dict["cltr"])
 
-    # # 6. Prints any tags that have been created for any of the sections:
-    nbox.print_tag_rt("Tags", set(tag_exists), tag_created)
+    # 6. CONTACTS: Creates all the contacts and assigns to objects
+    # cnt = Contacts(
+    #     my_vars["contact_role"], my_vars["contact_group"], my_vars["contact_assign"]
+    # )
+    # cnt_dict = cnt.create_contact()
+    # nbox.engine("Contact Role", "tenancy.contact-roles", "name", cnt_dict["cnt_role"])
+    # nbox.engine("Contact Group", "tenancy.contact-groups", "name", cnt_dict["cnt_grp"])
+    # nbox.engine("Contacts", "tenancy.contacts", "name", cnt_dict["cnt"])
+    # nbox.engine(
+    #     "Contact Assignment",
+    #     "tenancy.contact-assignments",
+    #     "multi-fltr",
+    #     cnt_dict["cnt_asgn"],
+    # )
+
+    # 7 Prints any tags that have been created for any of the sections:
+    # nbox.print_tag_rt("Tags", set(tag_exists), tag_created)
 
 
 if __name__ == "__main__":

@@ -11,9 +11,6 @@ tenant:
     descr: UTEST site1 Descri
     time_zone: US/Eastern
     addr: UTEST Addr
-    contact: UTEST contact
-    phone: UTEST phone number
-    email: UTESTe@example.co.uk
     ASN: 65100
     location:
     - name: UTEST Location
@@ -38,11 +35,11 @@ rack_role:
 # DEVICES: Each manufacturer optionally holds device types (defines device info such as interfaces) and the platform (driver used by NAPALM)
 # ----------------------------------------------------------------------------
 manufacturer:
-- name: cisco
-  slug: cisco
-  descr: All Cisco devices
+- name: UTEST manufacturer
+  slug: utest_manufacturer
+  descr: UTEST manufacturer descr
   platform:
-    - {name: IOS, slug: ios, driver: ios }
+    - {name: UTEST, slug: utest, driver: utest }
   device_type:
     - ws_c3560cx_12pcs.yaml
 - name: excel
@@ -50,7 +47,7 @@ manufacturer:
     - pp_copper_1u.yaml
 # DVC_ROLE: Roles of devices. slug, colour, descr and vm_role are optional. By default VMs can be assigned to a device_role, to change this add 'vm_role: False'
 device_role:
-  - {name: cabling, slug: cbl, color: c0c0c0, descr: Patch Panels, vm_role: False}
+  - {name: utest_dvc_role, slug: cbl, color: c0c0c0, descr: UTEST role descr, vm_role: False}
 
 # ----------------------------------------------------------------------------
 # RIR: Each governing body (including RFC1918) and your public address ranges (aggregates) assigned by them
@@ -72,7 +69,6 @@ role:
   - name: UTEST_site1
     vlan_grp:
     - name: UTEST vl group
-      slug: utest_vl_grp
       descr: site1 vlan group
       tenant: UTEST_tenant1
       vlan:
@@ -132,3 +128,27 @@ cluster_type:
       group: UTEST cluster grp2
       site: UTEST_site2
       tenant: UTEST_tenant2
+
+########################################## Contact ##########################################
+## CONTACTS: Each contact is a member of a group with the user assigned to an object (along with have a functional role)
+contact_role:
+  - {name: UTest Contact Role, slug: utest_cnt_role, descr: Day to day operations}
+
+## GROUP/USER: A user can only be a member of one groups
+contact_group:
+  - name: UTest Contact Group
+    descr: UTEST Contact descr
+    slug: utest_cnt_grp
+    contact:
+      - name: UTEST Contact
+        phone: UTEST 123456789
+        email: utest@utest.com
+        addr: Docklands, London
+        comments: UTEST Contact group descr
+
+# ASSIGN: Assign user and role to an object (group assignment is automatic). Provide name or slug (if is not a unique name) of the object to assign to
+contact_assign:
+  - assign_to: {tenant: UTEST_tenant2, site: UTEST_site2}
+    role: UTest Contact Role
+    contact: [UTEST Contact, UTEST Contact2]
+

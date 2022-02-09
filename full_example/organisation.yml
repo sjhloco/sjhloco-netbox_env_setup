@@ -1,0 +1,56 @@
+# This example shows all the options that are possible to be defined
+# Mandatory dictionaries must be defined and Optional are at your discretion
+
+# ----------------------------------------------------------------------------
+# ORGANISATION: Tenants, sites, locations (and child locations), racks and rack-roles
+# ----------------------------------------------------------------------------
+# TNT: Each customer is a tenant with its associated sites (optional).
+tenant:                               # Mandatory - List of tenants
+- name: tenant1                       # Mandatory - Name of the tenant
+  slug: tenant1                       # Optional
+  descr: Example tenant               # Optional
+  tags: {tenant1: c0c0c0}             # Optional - Dictionary of {name: colour}, can have multiple tags
+  # SITES: Hold locations (optional) which in turn hold racks
+  site:                               # Optional - List of sites
+  - name: site1                       # Mandatory - Name of site
+    slug: site1                       # Optional
+    descr: Head office                # Optional
+    time_zone: US/Eastern             # Optional - By default will set it to UTC
+    addr: London                      # Optional
+    ASN: 65100                        # Optional - Autonomous System Number (integer) for the site
+    tags: {site1: c0c0c0}             # Optional - Dictionary of {name: colour}, can have multiple tags
+    # LOC: Locations can hold racks or nested locations (like a floor and with rooms)
+    location:                         # Optional - List of locations that house a common grouping of racks (i.e. same room or floor)
+    - name: DC1 Floor1                # Mandatory - Name of the rack-group
+      slug: DC1_fl1                   # Optional
+      descr: Parent location          # Optional
+      tags: {location1: 9e9e9e}       # Optional - Dictionary of {name: colour}, can have multiple tags
+      # RACK: Racks can be designated a role to define its purpose
+      rack:                           # Optional - List of racks within the rack-group
+      - name: DC1_FL1_A1              # Mandatory - Name of the rack
+        role: network                 # Optional - The predefined role of the rack
+        height: 5                     # Optional - In U, by default is 42U
+        tenant: tenant2               # Optional - By default is in the parent tenant. Can optionally specify a different tenant
+        tags: {rack1: 9e9e9e}         # Optional - Dictionary of {name: colour}, can have multiple tags
+      location:                       # Optional - Can have nested location, for example a floor and then rooms on that floor
+      - name: Room1                   # Mandatory - Name of the nested location
+        slug: DC1_fl1_room1
+        descr: Nested location        # Optional
+        rack:                         # Optional - List of racks within the nested rack-group
+        - name: DC1_FL1_RM1_A1        # Mandatory - Name of the rack
+    - name: DC1 Floor2
+      location:
+      - name: Room1
+        slug: DC1_fl2_room1
+  - name: azure
+    slug: azu
+    descr: Azure cloud environment
+    addr: London, West Europe
+    ASN: 7224
+- name: tenant2
+
+# RACK_ROLE: The role of the rack. Only needed if it is defined under the rack. slug, color, and descr are optional
+rack_role:
+  - {name: network, slug: network, color: aa1409, descr: Network equipment, tags: {network: 9e9e9e}}
+  - {name: patching, slug: patching, color: c0c0c0, descr: Patch Panels for linking floors}
+  - {name: compute, slug: compute, color: 4caf50, descr: Blade chassis and servers}
