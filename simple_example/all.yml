@@ -1,30 +1,64 @@
+# This example shows a minimum install with mostly mandatory and the odd optional setting
 
+# ----------------------------------------------------------------------------
+# ORGANISATION: Tenants, sites, locations (and child locations), racks and rack-roles
+# ----------------------------------------------------------------------------
+# TNT: Each customer is a tenant with its associated sites (optional).
+tenant:
+- name: EvilCorp
+  # SITES: Hold locations (optional) which in turn hold racks
+  site:
+  - name: DC0
+    descr: London DC
+    addr: Docklands, London
+    # LOC: Locations can hold racks or nested locations (like a floor and with rooms)
+    location:
+    - name: DC0 Floor1
+      slug: dc0_fl1
+      # RACK: Racks can be designated a role to define its purpose
+      rack:
+      - {name: DC1-FL1-A1, role: patching}
+      - {name: DC1_FL1_B1, role: network}
+  - name: aws
+    descr: AWS cloud environment
+    addr: Europe, London
+    ASN: 7224
 
-# ########################################## DEVICES ##########################################
-# # DVC: Each manufactor optionally holds device types (defines device info such as interfaces) and the platform (driver used by NAPALM)
-# manufacturer:
-# - name: Cisco
-#   platform:
-#     - name: ASA
-#     - name: IOS
-#     - {name: IOS-XR, driver: iosxr }
-#   device_type:
-#     - asa5506X.yaml
-#     - ws_c3560cx_12pcs.yaml
-# - name: F5
-#   platform:
-#   - {name: BIGIP, driver: f5 }
-# - name: Excel
-#   device_type:
-#     - pp_copper_1u.yaml
-#     - pp_copper_2u.yaml
+# RACK_ROLE: The role of the rack. Only needed if it is defined under the rack. slug, color, and descr are optional
+rack_role:
+  - {name: patching, slug: patching, color: c0c0c0, descr: Patch Panels for linking floors}
+  - {name: network, slug: network, color: aa1409, descr: Network equipment}
+  - {name: compute, slug: compute, color: 4caf50, descr: Blade chassis and servers}
 
-# # DVC_ROLE: Roles of devices. slug, colour, descr and vm_role are optional. By default VMs can be assigned to a device_role, to change this add 'vm_role: False'
-# device_role:
-#   - {name: cabling, color: c0c0c0, descr: Patch Panels, vm_role: False}
-#   - {name: router, color: aa1409, descr: Routers and combined wifi/switch/router}
-#   - {name: firewall, color: f44336, descr: L3-7 edge and internal firewalls}
-#   - {name: switch, color: 2196f3,  descr: L2 and L3 switches}
+# ----------------------------------------------------------------------------
+# DEVICES: Manufacturer, platform, device_type and device role
+# ----------------------------------------------------------------------------
+# MFTR: Each manufacture optionally holds device types (defines device info such as interfaces) and the platform (driver used by NAPALM)
+manufacturer:
+  - name: Cisco
+    # PLTM: Used for NAPALM. driver and slug optional, if driver not defined uses the name
+    platform:
+      - name: ASA
+      - name: IOS
+      - {name: IOS-XR, driver: iosxr }
+    # DVC_TYPE: Predefined in yaml files that follow community library format (stored in device_types directory)
+    device_type:
+      - asa5506X.yaml
+      - ws_c3560cx_12pcs.yaml
+  - name: F5
+    platform:
+    - {name: BIGIP, driver: f5 }
+  - name: Excel
+    device_type:
+      - pp_copper_1u.yaml
+      - pp_copper_2u.yaml
+
+# DVC_ROLE: Roles of devices. slug, colour, descr and vm_role are optional. By default VMs can be assigned to a device_role, to change this add 'vm_role: False'
+device_role:
+  - {name: cabling, color: c0c0c0, descr: Patch Panels, vm_role: False}
+  - {name: router, color: aa1409, descr: Routers and combined wifi/switch/router}
+  - {name: firewall, color: f44336, descr: L3-7 edge and internal firewalls}
+  - {name: switch, color: 2196f3,  descr: L2 and L3 switches}
 
 # ########################################## IPAM ##########################################
 # # RIR: Each governing body (including RFC1918) and your public address ranges (aggregates) assigned by them

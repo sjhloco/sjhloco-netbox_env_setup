@@ -4,8 +4,8 @@ import os
 
 from netbox import Nbox
 from dm import Organisation
+from dm import Devices
 
-# from dm import Devices
 # from dm import Ipam
 # from dm import Circuits
 # from dm import Virtualisation
@@ -19,7 +19,7 @@ import tests.test_files.device_types as device_types
 # Directory that holds inventory files
 test_dir = os.path.dirname(__file__)
 test_input = os.path.join(test_dir, "test_files", "test_inputs.yml")
-
+dvc_type_dir = os.path.join(test_dir, "test_files")
 # For docker test environment
 token = "0123456789abcdef0123456789abcdef01234567"
 # netbox_url = "http://10.10.10.104:8000"
@@ -56,7 +56,7 @@ def organisation_vars():
 @pytest.fixture(scope="class")
 def devices_vars():
     global dvc, dev_role, mftr_sw, mftr_pp, pltm, dev_type_swi, dev_type_pp
-    dvc = Devices(my_vars["device_role"], my_vars["manufacturer"])
+    dvc = Devices(nbox, my_vars["device_role"], my_vars["manufacturer"], dvc_type_dir)
     dev_role = my_vars["device_role"][0]
     mftr_sw = my_vars["manufacturer"][0]
     mftr_pp = my_vars["manufacturer"][1]
@@ -69,7 +69,7 @@ def devices_vars():
 @pytest.fixture(scope="class")
 def ipam_vars():
     global ipam, rir, aggr, role, vlan_grp, vlan, vrf, pfx
-    ipam = Ipam(my_vars["rir"], my_vars["role"])
+    ipam = Ipam(nbox, my_vars["rir"], my_vars["role"])
     rir = my_vars["rir"][0]
     aggr = my_vars["rir"][0]["ranges"][0]
     role = my_vars["role"][0]
@@ -83,7 +83,7 @@ def ipam_vars():
 @pytest.fixture(scope="class")
 def circuits_vars():
     global crt, crt_type, pvdr, cirt
-    crt = Circuits(my_vars["circuit_type"], my_vars["provider"])
+    crt = Circuits(nbox, my_vars["circuit_type"], my_vars["provider"])
     crt_type = my_vars["circuit_type"][0]
     pvdr = my_vars["provider"][0]
     cirt = my_vars["provider"][0]["circuit"][0]
@@ -93,7 +93,7 @@ def circuits_vars():
 @pytest.fixture(scope="class")
 def virtualisation_vars():
     global vrtl, cltr_grp, cltr_type, cltr1, cltr2
-    vrtl = Virtualisation(my_vars["cluster_group"], my_vars["cluster_type"])
+    vrtl = Virtualisation(nbox, my_vars["cluster_group"], my_vars["cluster_type"])
     cltr_grp = my_vars["cluster_group"][0]
     cltr_type = my_vars["cluster_type"][0]
     cltr1 = my_vars["cluster_type"][0]["cluster"][0]
@@ -105,7 +105,10 @@ def virtualisation_vars():
 def contact_vars():
     global cnt, cnt_role, cnt_grp, contact, cnt_asgn
     cnt = Contacts(
-        my_vars["contact_role"], my_vars["contact_group"], my_vars["contact_assign"]
+        nbox,
+        my_vars["contact_role"],
+        my_vars["contact_group"],
+        my_vars["contact_assign"],
     )
     cnt_role = my_vars["contact_role"][0]
     cnt_grp = my_vars["contact_group"][0]
@@ -266,6 +269,7 @@ class TestDevices:
             "name": dev_role["name"],
             "slug": dev_role["slug"],
             "vm_role": dev_role["vm_role"],
+            "tags": [],
         }
         actual_result = dvc.cr_dev_role(dev_role)
         assert actual_result == desired_dev_role, err_msg
@@ -278,6 +282,7 @@ class TestDevices:
             "description": mftr_sw["descr"],
             "name": mftr_sw["name"],
             "slug": mftr_sw["slug"],
+            "tags": [],
         }
         actual_result = dvc.cr_mftr(mftr_sw)
         assert actual_result == desired_mftr_sw, err_msg
@@ -292,6 +297,7 @@ class TestDevices:
             "name": pltm["name"],
             "napalm_driver": pltm["driver"],
             "slug": pltm["slug"],
+            "tags": [],
         }
         actual_result = dvc.cr_pltm(mftr_sw["name"], pltm)
         assert actual_result == desired_pltm, err_msg
@@ -318,37 +324,37 @@ class TestDevices:
         actual_result = dvc.cr_dev_type(mftr_sw["name"], dev_type_swi)
         assert actual_result == desired_dev_type_sw, err_msg
 
+    # 2f. DEV_TYPE_PP: Test method for creating dict to add a patch panel device_type
+    def test_cr_dev_type_pp(self):
+        err_msg = "❌ cr_dev_type: Creation of Patch Panel Device Type dictionary failed"
+        global desired_dev_type_pp
+        desired_dev_type_pp = device_types.pp
+        actual_result = dvc.cr_dev_type(mftr_pp["name"], dev_type_pp)
+        assert actual_result == desired_dev_type_pp, err_msg
 
-#        # 2f. DEV_TYPE_PP: Test method for creating dict to add a patch panel device_type
-#     def test_cr_dev_type_pp(self):
-#         err_msg = "❌ cr_dev_type: Creation of Patch Panel Device Type dictionary failed"
-#         global desired_dev_type_pp
-#         desired_dev_type_pp = device_types.pp
-#         actual_result = dvc.cr_dev_type(mftr_pp["name"], dev_type_pp)
-#         assert actual_result == desired_dev_type_pp, err_msg
+    # 2g. DVC: Test method for creating dict to add all Device Type objects
+    def test_create_dvc_type_role(self):
+        err_msg = "❌ create_create_dvc_type_role: Creation of Device Types objects dictionary failed"
 
-#     # 2g. DVC: Test method for creating dict to add all Device Type objects
-#     def test_create_dvc_type_role(self):
-#         err_msg = "❌ create_create_dvc_type_role: Creation of Device Types objects dictionary failed"
+        desired_mftr_pp = {
+            "description": "",
+            "name": mftr_pp["name"],
+            "slug": mftr_pp["name"],
+            "tags": [],
+        }
+        desired_mftr = [desired_mftr_sw]
+        desired_mftr.append(desired_mftr_pp)
 
-#         desired_mftr_pp = {
-#             "description": "",
-#             "name": mftr_pp["name"],
-#             "slug": mftr_pp["name"],
-#         }
-#         desired_mftr = [desired_mftr_sw]
-#         desired_mftr.append(desired_mftr_pp)
-
-#         desired_dev_type = [desired_dev_type_sw]
-#         desired_dev_type.append(desired_dev_type_pp)
-#         actual_result = dvc.create_dvc_type_role()
-#         desired_result = dict(
-#             dev_role=[desired_dev_role],
-#             mftr=desired_mftr,
-#             pltm=[desired_pltm],
-#             dev_type=desired_dev_type,
-#         )
-#         assert actual_result == desired_result, err_msg
+        desired_dev_type = [desired_dev_type_sw]
+        desired_dev_type.append(desired_dev_type_pp)
+        actual_result = dvc.create_dvc_type_role()
+        desired_result = dict(
+            dev_role=[desired_dev_role],
+            mftr=desired_mftr,
+            pltm=[desired_pltm],
+            dev_type=desired_dev_type,
+        )
+        assert actual_result == desired_result, err_msg
 
 
 # # ----------------------------------------------------------------------------

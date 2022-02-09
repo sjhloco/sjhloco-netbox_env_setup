@@ -61,25 +61,21 @@ The device-types are built from pre-defined YAML files that can be downloaded fr
 
 | Object   | Description          | Mandatory | Optional |
 | -------- | -------------------- | --------- | ---------|
+| manufacturer | List of all device manufacturers | name | slug, descr, tags, ***platform*** |
+| manufacturer.platform | List of platforms (used for NAPALM) | name | driver, slug, descr, tags |
+| manufacturer.device_type | List of device-types (yaml files) | n/a | n/a |
+| device_role | List of device roles | name, color | vm_role, slug, descr, tags |
 
-
-
-**IPAM:** *RIR, Aggregates, Prefix/VLAN roles, VLAN-groups, VLANs, VRFs, Prefixes*\
+#### IPAM - *RIR, Aggregates, Prefix/VLAN roles, VLAN-groups, VLANs, VRFs, Prefixes*
 Prefix/VLAN roles group the VLANs and prefixes together to define environments. They are top of the IPAM hierarchy in the YAML file.\
 VLAN-groups, VLANs, VRFs and prefixes are in some way related to sites and tenants. Tenants can be assigned in a hierarchical manner.\
 Tags can be set in multiple places for VLANs, VRFs and prefixes with differing variants of inheritance.\
 VRFs and prefixes are either defined under the role (non-VLAN environments like clouds) or the VLAN-group (if prefixes associated to VLANs).\
 
-```css
-ipam = nbox.create_ipam()
-nbox.obj_check('RIRs', 'ipam.rirs', 'name', ipam['rir'])
-nbox.obj_check('Aggregates', 'ipam.aggregates', 'prefix', ipam['aggr'])
-nbox.obj_check('Prefix/VLAN Role', 'ipam.roles', 'name', ipam['role'])
-nbox.obj_check('VLAN Group', 'ipam.vlan-groups', 'name', ipam['vlan_grp'])
-nbox.obj_check('VRF', 'ipam.vrfs', 'name', ipam['vrf'])
-nbox.vlan_vrf_check('VLAN', ['ipam.vlans', 'ipam.vlan_groups'], ['name', 'group'], ipam['vlan'])
-nbox.vlan_vrf_check('Prefix', ['ipam.prefixes', 'ipam.vrfs'], ['prefix', 'vrf'], ipam['prefix'])
-```
+
+
+
+
 
 **Provider:** *Circuit-type, Provider, Circuit*\
 Providers are the ISPs that hold individual circuits with pre-defined circuit-types

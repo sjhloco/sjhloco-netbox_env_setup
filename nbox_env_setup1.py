@@ -32,15 +32,14 @@ from pprint import pprint
 
 from netbox import Nbox
 from dm import Organisation
+from dm import Devices
 
 
 # ----------------------------------------------------------------------------
 # Variables to change dependant on environment
 # ----------------------------------------------------------------------------
 # Directory that holds all device type templates
-dvc_type_dir = os.path.expanduser(
-    "~/Documents/Coding/Netbox/nbox_py_scripts/netbox_env_setup/device_type"
-)
+dvc_type_dir = os.path.join(os.getcwd(), "device_type")
 
 input_dir = "full_example"
 base_dir = os.getcwd()
@@ -184,17 +183,20 @@ def main():
         nbox.engine("Location (child)", "dcim.locations", "slug", org_dict["chld_loc"])
         nbox.engine("Rack", "dcim.racks", "name", org_dict["rack"])
 
-    # 2. DVC_MTFR_TYPE: Create all the objects required to create devices
-    # dvc = Devices(my_vars["device_role"], my_vars["manufacturer"])
-    # dvc_dict = dvc.create_dvc_type_role()
-    # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
-    # nbox.engine("Device-role", "dcim.device_roles", "name", dvc_dict["dev_role"])
-    # nbox.engine("Manufacturer", "dcim.manufacturers", "name", dvc_dict["mftr"])
-    # nbox.engine("Platform", "dcim.platforms", "name", dvc_dict["pltm"])
-    # nbox.engine("Device-type", "dcim.device_types", "model", dvc_dict["dev_type"])
+    # 3. DVC_MTFR_TYPE: Create all the objects required to create devices
+    if args["device"] == True:
+        dvc = Devices(
+            nbox, my_vars["device_role"], my_vars["manufacturer"], dvc_type_dir
+        )
+        dvc_dict = dvc.create_dvc_type_role()
+        # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
+        nbox.engine("Device-role", "dcim.device_roles", "name", dvc_dict["dev_role"])
+        nbox.engine("Manufacturer", "dcim.manufacturers", "name", dvc_dict["mftr"])
+        nbox.engine("Platform", "dcim.platforms", "name", dvc_dict["pltm"])
+        nbox.engine("Device-type", "dcim.device_types", "model", dvc_dict["dev_type"])
 
     # 3. IPAM_VRF_VLAN: Create all the IPAM objects
-    # ipam = Ipam(my_vars["rir"], my_vars["role"])
+    # ipam = Ipam(nbox, my_vars["rir"], my_vars["role"])
     # ipam_dict = ipam.create_ipam()
 
     # # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
@@ -219,7 +221,7 @@ def main():
     # )
 
     # # 4. CRT_PVDR: Create all the Circuit objects
-    # crt = Circuits(my_vars["circuit_type"], my_vars["provider"])
+    # crt = Circuits(nbox, my_vars["circuit_type"], my_vars["provider"])
     # crt_dict = crt.create_crt_pvdr()
     # # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
     # nbox.engine("Circuit Type", "circuits.circuit-types", "name", crt_dict["crt_type"])
@@ -227,7 +229,7 @@ def main():
     # nbox.engine("Circuit", "circuits.circuits", "cid", crt_dict["crt"])
 
     # # 5. VIRTUAL: Creates all the Cluster objects
-    # vrtl = Virtualisation(my_vars["cluster_group"], my_vars["cluster_type"])
+    # vrtl = Virtualisation(nbox, my_vars["cluster_group"], my_vars["cluster_type"])
     # vrtl_dict = vrtl.create_vrtl()
     # # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
     # nbox.engine(
@@ -240,7 +242,7 @@ def main():
 
     # 6. CONTACTS: Creates all the contacts and assigns to objects
     # cnt = Contacts(
-    #     my_vars["contact_role"], my_vars["contact_group"], my_vars["contact_assign"]
+    #     nbox, my_vars["contact_role"], my_vars["contact_group"], my_vars["contact_assign"]
     # )
     # cnt_dict = cnt.create_contact()
     # nbox.engine("Contact Role", "tenancy.contact-roles", "name", cnt_dict["cnt_role"])

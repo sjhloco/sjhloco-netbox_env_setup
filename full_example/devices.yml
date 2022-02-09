@@ -9,13 +9,15 @@ manufacturer:                           # Mandatory - List of all device manufac
   - name: Cisco                         # Mandatory - Name of the manufacturer
     slug: cisco                         # Optional
     descr: All Cisco devices            # Optional
+    tags: {mftr1: c0c0c0}             # Optional - Dictionary of {name: colour}, can have multiple tags
+
     # PLTM: Used for NAPALM. driver and slug optional, if driver not defined uses the name
     platform:                           # Optional
-      - {name: ASA, slug: asa, driver: asa }
+      - {name: ASA, slug: asa, driver: asa, tags: {asa: c0c0c0}}
       - {name: IOS-XR, slug: ios_xr, driver: iosxr }
       - {name: IOS, slug: ios, driver: ios }
     # DVC_TYPE: Predefined in yaml files that follow community library format (stored in device_types directory)
-    device_type:                        # Optional
+    device_type:                        # Optional list of device-types
       - asa5506X.yaml
       - asa5505.yaml
       - ws_c3560cx_12pcs.yaml
@@ -27,6 +29,6 @@ manufacturer:                           # Mandatory - List of all device manufac
 
 # DVC_ROLE: Roles of devices. slug, colour, descr and vm_role are optional. By default VMs can be assigned to a device_role, to change this add 'vm_role: False'
 device_role:
-  - {name: cabling, slug: cbl, color: c0c0c0, descr: Patch Panels, vm_role: False}
+  - {name: cabling, slug: cbl, color: c0c0c0, descr: Patch Panels, vm_role: False, tags: {cabling: c0c0c0}}
   - {name: router, slug: rtr, color: aa1409, descr: Routers and combined wifi/switch/router, vm_role: True}
   - {name: firewall, slug: fw, color: f44336, descr: L3-7 edge and internal firewalls, vm_role: True}
