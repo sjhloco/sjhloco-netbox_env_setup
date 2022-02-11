@@ -1,0 +1,30 @@
+# This example shows all the options that are possible to be defined. Mandatory dictionaries must be defined and Optional are at your discretion
+
+# ----------------------------------------------------------------------------
+# CIRCUIT: Circuit-type, Provider, Circuit
+# ----------------------------------------------------------------------------
+# CRT_TYPE: Different types that can be associated to circuits. Only name is mandatory, slug and descr are optional
+circuit_type:
+  - { name: Fibre Broadband, slug: fibre_bband, descr: Fibre broadband, tags: {fibre: 9e9e9e}}
+  - { name: Carrier Ethernet, slug: car_eth}
+  - { name: Dedicated Cloud Access, slug: dca, descr: Dedicated circuit for a cloud provider }
+# PROVIDER: Supplier whom provides some form of connectivity
+provider:                           # Mandatory - List of ISPs
+- name: BT Group                    # Mandatory - Name of the ISP
+  slug: bt                          # Optional
+  asn: 65105                        # Optional - Must be an integer
+  account_num: Mr evil              # Optional
+  portal_url: https://www.bt.com    # Optional
+  comments: BT are s#@t             # Optional - Extra information
+  tags: {bt: 9e9e9e}                # Optional - Dictionary of {name: colour}, can have multiple tags
+  # CRT: List of this providers circuits
+  circuit:                          # Mandatory - List of circuits
+    - cid: 666                      # Mandatory -  The Circuit ID, must be unique within the provider
+      type: Fibre Broadband         # Mandatory - Must have one of the pre-defined circuit types
+      descr: home broadband         # Optional
+      tenant: tenant2               # Optional
+      commit_rate: 100000           # Optional - An integer in Kbps
+      tags: {666: 9e9e9e}           # Optional - Dictionary of {name: colour}, can have multiple tags
+    - cid: test_tag
+      type: Fibre Broadband
+      tags: {test_tag: 9e9e9e}

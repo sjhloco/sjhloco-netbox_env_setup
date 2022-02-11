@@ -30,6 +30,7 @@ rack_role:
   - {name: network, slug: network, color: aa1409, descr: Network equipment}
   - {name: compute, slug: compute, color: 4caf50, descr: Blade chassis and servers}
 
+
 # ----------------------------------------------------------------------------
 # DEVICES: Manufacturer, platform, device_type and device role
 # ----------------------------------------------------------------------------
@@ -59,6 +60,7 @@ device_role:
   - {name: router, color: aa1409, descr: Routers and combined wifi/switch/router}
   - {name: firewall, color: f44336, descr: L3-7 edge and internal firewalls}
   - {name: switch, color: 2196f3,  descr: L2 and L3 switches}
+
 
 # ----------------------------------------------------------------------------
 # IPAM: RIR, Aggregates, Prefix/VLAN roles, VLAN-groups, VLANs, VRFs, Prefixes
@@ -132,40 +134,86 @@ role:
         descr: NT-vnet1-data
 
 
-# ########################################## Circuits ##########################################
-# ## CIRCUIT TYPE: Different types that can be associated to circuits. Only name is mandatory, slug and descr are optional
-# circuit_type:
-#   - { name: Broadband, slug: adsl }
-#   - { name: Carrier Ethernet}
-#   - { name: Dedicated Cloud Access, slug: dca, descr: Dedicated circuit for a cloud provider }
+# ----------------------------------------------------------------------------
+# CIRCUIT: Circuit-type, Provider, Circuit
+# ----------------------------------------------------------------------------
+# CRT_TYPE: Different types that can be associated to circuits. Only name is mandatory, slug and descr are optional
+circuit_type:
+  - { name: Broadband, slug: adsl }
+  - { name: Carrier Ethernet}
+  - { name: Dedicated Cloud Access, slug: dca, descr: Dedicated circuit for a cloud provider }
+# PROVIDER: Supplier whom provides some form of connectivity
+provider:
+- name: Plusnet
+  account_num: Davy Crockett
+  portal_url: https://www.plus.net/member-centre/login
+  # CRT: List of this providers circuits
+  circuit:
+    - cid: plusnet_hme
+      type: Broadband
 
-# ## PROVIDER: Supplier whom provides some form of connectivity.
-# provider:
-# - name: Plusnet
-#   account_num: Davy Crockett
-#   portal_url: https://www.plus.net/member-centre/login
-#   circuit:
-#     - cid: plusnet_hme
-#       type: Broadband
 
-# ########################################## Virtualization ##########################################
-# ## CLUSTER GROUP: Can be used to add optionl grouping, for example region or a client
-# cluster_group:
-#   - { name: AWS_SUB1, slug: aws_sub1 }
+# ----------------------------------------------------------------------------
+# Virtualization: Cluster-group, Cluster-type, Cluster
+# ----------------------------------------------------------------------------
+# CLUSTER GROUP: Can be used to add optional grouping, for example region or a client
+cluster_group:
+  - { name: AWS_SUB1, slug: aws_sub1 }
+# CLTR_TYPE: Cluster Types group based on technology. Clusters are logical groupings of physical resources (physical hosts) within which VMs run
+cluster_type:
+  - name: AWS
+    site: aws
+    group: AWS_SUB1
+    tags: {aws: 9e9e9e}
+    # CLTR: List of clusters of this cluster type
+    cluster:
+    - name: AWS UK West
+      comment: test comments
+  - name: vSphere
+    cluster:
+    - name: ESX DC0
+      site: DC0
 
-# cluster_type:
-#   - name: AWS
-#     site: aws
-#     group: AWS_SUB1
-#     tags: [aws]
-#     cluster:
-#     - name: AWS UK West
-#       comment: test comments
-#   - name: vSphere
-#     cluster:
-#     - name: ESX DC0
-#       site: DC0
 
+# ----------------------------------------------------------------------------
+# CONTACT: Contact-role, Contact Group, Contact Assignment
+# ----------------------------------------------------------------------------
+# CNT_ROLE: At contact assignment a contact can optionally be assigned a role. Name is mandatory, slug, descr and tags optional
+contact_role:
+  - {name: provider, descr: ISP contact details}
+  - {name: facilities, descr: Building maintenance}
+# GROUP: A group contains a list of contacts
+contact_group:
+  - name: BT
+    descr: BT contacts
+    slug: bt_contact_grp
+    # CNT: Each contact is a member of a group (can only be a member of one group)
+    contact:
+      - name: BT NOC
+        phone: 123456789
+        email: evil@bt.com
+      - name: BT OOH NOC
+        phone: 987654321
+  - name: Site Facilities
+    slug: networks
+    contact:
+      - name: Bob Jones
+        phone: 123456789
+        addr: 1 lazy street
+# ASSIGN: Assign user and role to an object (group assignment is automatic). Provide name (or slug if is not a unique name) of the object to assign to
+contact_assign:
+  - assign_to: {provider: "Plusnet", circuit: plusnet_hme}
+    role: provider
+    contact: [BT NOC]
+    priority: primary
+  - assign_to: {provider: "Plusnet"}
+    role: provider
+    contact: [BT OOH NOC]
+    priority: secondary
+  - assign_to: {tenant: "EvilCorp", site: "DC0"}
+    role: facilities
+    contact: [Bob Jones]
+    priority: primary
 
 
 

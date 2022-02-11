@@ -1,0 +1,27 @@
+# This example shows all the options that are possible to be defined. Mandatory dictionaries must be defined and Optional are at your discretion
+
+# ----------------------------------------------------------------------------
+# Virtualization: Cluster-group, Cluster-type, Cluster
+# ----------------------------------------------------------------------------
+# CLUSTER GROUP: Can be used to add optional grouping, for example region or a client
+cluster_group:                    # Optional - List of groups. Name is mandatory, slug and descr are optional
+  - { name: Azure UK West, slug: az_ukwest, descr: Azure UK West environment, tags: {az: 9e9e9e}}
+  - { name: Azure Germany, slug: az_ger, descr: Azure Germany environment }
+# CLTR_TYPE: Cluster Types group based on technology. Clusters are logical groupings of physical resources (physical hosts) within which VMs run
+cluster_type:                     # Mandatory - List of Cluster Types
+  - name: Azure
+    site: azure                   # Optional - The site all clusters are in
+    tenant: tenant1               # Optional - Tenant for all clusters, by default uses site tenant
+    group: Azure UK West          # Optional - Cluster Group for all clusters
+    tags: {az: 9e9e9e}            # Optional - Dictionary of {name: colour}, can have multiple tags
+    # CLTR: List of clusters of this cluster type
+    cluster:                      # Optional - List of clusters
+    - name: AZURE VSE             # Mandatory - Name of the cluster
+      comment: UK West env        # Optional
+      tags: {ukwest: 9e9e9e}      # Optional - Dictionary of {name: colour}, can have multiple tags
+    - name: AZURE VSE1
+      group: Azure Germany        # Optional - Overrides Cluster Group set for all clusters
+      site: site1                 # Optional - Overrides the Site set for all clusters
+      tenant: tenant2             # Optional - Overrides the Tenant set for all clusters
+  - name: vSphere
+  - {name: Google Cloud, descr: test}

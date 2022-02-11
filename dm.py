@@ -325,7 +325,6 @@ class Ipam:
             tenant=self.nb.name_none(
                 vl_grp_tnt, dict(name=each_vl.get("tenant", vl_grp_tnt))
             ),
-            # tenant=dict(name=each_vl.get("tenant", vl_grp_tnt)),
             group=dict(name=each_vlgrp["name"]),
             description=each_vl.get("descr", ""),
             tags=self.nb.get_or_create_tag(each_vl.get("tags")),
@@ -459,242 +458,248 @@ class Ipam:
         )
 
 
-# # ----------------------------------------------------------------------------
-# # 5. CRT_PVDR: Creates the DM for Circuit, Provider and Circuit Type
-# # ----------------------------------------------------------------------------
-# class Circuits():
-#     def __init__(self, nbox: "netbox", circuit_type: List, provider: List) -> None:
-#         self.nb = nbox
-#         self.circuit_type = circuit_type
-#         self.provider = provider
-#         self.crt_type, self.pvdr, self.crt = ([] for i in range(3))
+# ----------------------------------------------------------------------------
+# 5. CRT_PVDR: Creates the DM for Circuit, Provider and Circuit Type
+# ----------------------------------------------------------------------------
+class Circuits:
+    def __init__(self, nbox: "netbox", circuit_type: List, provider: List) -> None:
+        self.nb = nbox
+        self.circuit_type = circuit_type
+        self.provider = provider
+        self.crt_type, self.pvdr, self.crt = ([] for i in range(3))
 
-#     # 5a. CIRCUIT_TYPE: A classification of circuits
-#     def cr_crt_type(self, each_type: Dict[str, Any]) -> Dict[str, Any]:
-#         return dict(
-#             name=each_type["name"],
-#             slug=each_type.get("slug", self.nb.make_slug(each_type["name"])),
-#             description=each_type.get("descr", ""),
-#         )
+    # 5a. CIRCUIT_TYPE: A classification of circuits
+    def cr_crt_type(self, each_type: Dict[str, Any]) -> Dict[str, Any]:
+        return dict(
+            name=each_type["name"],
+            slug=self.nb.make_slug(each_type.get("slug", each_type["name"])),
+            description=each_type.get("descr", ""),
+            tags=self.nb.get_or_create_tag(each_type.get("tags")),
+        )
 
-#     # 5b. PROVIDER: Containers that hold cicuits by the same provider of connectivity (ISP)
-#     def cr_pvdr(self, each_pvdr: Dict[str, Any]) -> Dict[str, Any]:
-#         tmp_pvdr = dict(
-#             name=each_pvdr["name"],
-#             slug=each_pvdr.get("slug", self.nb.make_slug(each_pvdr["name"])),
-#             account=each_pvdr.get("account_num", ""),
-#             portal_url=each_pvdr.get("portal_url", ""),
-#             noc_contact=each_pvdr.get("noc_contact", ""),
-#             admin_contact=each_pvdr.get("admin_contact", ""),
-#             comments=each_pvdr.get("comments", ""),
-#             tags=self.nb.get_or_create_tag(each_pvdr.get("tags")),
-#         )
-#         # Optional setting ASN
-#         if each_pvdr.get("asn") != None:
-#             tmp_pvdr["asn"] = each_pvdr["asn"]
-#         return tmp_pvdr
+    # 5b. PROVIDER: Containers that hold cicuits by the same provider of connectivity (ISP)
+    def cr_pvdr(self, each_pvdr: Dict[str, Any]) -> Dict[str, Any]:
+        tmp_pvdr = dict(
+            name=each_pvdr["name"],
+            slug=self.nb.make_slug(each_pvdr.get("slug", each_pvdr["name"])),
+            account=each_pvdr.get("account_num", ""),
+            portal_url=each_pvdr.get("portal_url", ""),
+            comments=each_pvdr.get("comments", ""),
+            tags=self.nb.get_or_create_tag(each_pvdr.get("tags")),
+        )
+        # Optional setting ASN
+        if each_pvdr.get("asn") != None:
+            tmp_pvdr["asn"] = each_pvdr["asn"]
+        return tmp_pvdr
 
-#     # 5c. CIRCUIT: Each circuit belongs to a provider and must be assigned a circuit ID which is unique to that provider
-#     def cr_crt(
-#         self, each_pvdr: Dict[str, Any], each_crt: Dict[str, Any]
-#     ) -> Dict[str, Any]:
-#         tmp_crt = dict(
-#             cid=str(each_crt["cid"]),
-#             type=dict(name=each_crt["type"]),
-#             provider=dict(name=each_pvdr["name"]),
-#             description=each_crt.get("descr", ""),
-#             tags=self.nb.get_or_create_tag(each_crt.get("tags")),
-#         )
-#         # Optional settings Tenant and commit_rate need to be only added if set as empty vlaues breal API calls
-#         if each_crt.get("tenant") != None:
-#             tmp_crt["tenant"] = dict(name=each_crt["tenant"])
-#         if each_crt.get("commit_rate") != None:
-#             tmp_crt["commit_rate"] = each_crt["commit_rate"]
-#         return tmp_crt
+    # 5c. CIRCUIT: Each circuit belongs to a provider and must be assigned a circuit ID which is unique to that provider
+    def cr_crt(
+        self, each_pvdr: Dict[str, Any], each_crt: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        tmp_crt = dict(
+            cid=str(each_crt["cid"]),
+            type=dict(name=each_crt["type"]),
+            provider=dict(name=each_pvdr["name"]),
+            description=each_crt.get("descr", ""),
+            tags=self.nb.get_or_create_tag(each_crt.get("tags")),
+        )
+        # Optional settings Tenant and commit_rate need to be only added if set as empty vlaues breal API calls
+        if each_crt.get("tenant") != None:
+            tmp_crt["tenant"] = dict(name=each_crt["tenant"])
+        if each_crt.get("commit_rate") != None:
+            tmp_crt["commit_rate"] = each_crt["commit_rate"]
+        return tmp_crt
 
-#     # ENGINE: Runs all the other methods in this class to create dict used to create nbox objects
-#     def create_crt_pvdr(self) -> Dict[str, Any]:
-#         # 5a. CRT_TYPE: Create Circuit Type dictionary
-#         for each_type in self.circuit_type:
-#             self.crt_type.append(self.cr_crt_type(each_type))
-#         # 5b. PVDR: Create Provider dictionary
-#         for each_pvdr in self.provider:
-#             self.pvdr.append(self.cr_pvdr(each_pvdr))
-#             # 4c. CRT: Create Circuit dictionary
-#             for each_crt in each_pvdr["circuit"]:
-#                 self.crt.append(self.cr_crt(each_pvdr, each_crt))
-#         # 5c. The Data Models returned to the main method that are used to create the objects
-#         return dict(crt_type=self.crt_type, pvdr=self.pvdr, crt=self.crt)
-
-
-# # ----------------------------------------------------------------------------
-# # 6. VIRTUAL: Creates the DM for Cluster, cluster type and cluster group
-# # ----------------------------------------------------------------------------
-# class Virtualisation():
-#     def __init__(self, nbox: "netbox", cluster_group: List, cluster_type: List) -> None:
-#         self.nb = nbox
-#         self.cluster_group = cluster_group
-#         self.cluster_type = cluster_type
-#         self.cltr_type, self.cltr, self.cltr_grp = ([] for i in range(3))
-
-#     # 6a. CLUSTER_GROUP: Optional, can be used to group clusters such as by region. Only required if used in clusters
-#     def cr_cltr_grp(self, each_grp: Dict[str, Any]) -> Dict[str, Any]:
-#         return dict(
-#             name=each_grp["name"],
-#             slug=each_grp.get("slug", self.nb.make_slug(each_grp["name"])),
-#             description=each_grp.get("descr", ""),
-#         )
-
-#     # 6b. CLUSTER_TYPE: Represents a technology or mechanism by which to group clusters
-#     def cr_cltr_type(self, each_type: Dict[str, Any]) -> Dict[str, Any]:
-#         return dict(
-#             name=each_type["name"],
-#             slug=each_type.get("slug", self.nb.make_slug(each_type["name"])),
-#             description=each_type.get("descr", ""),
-#         )
-
-#     # 6c. CLUSTERS: Holds VMs and physical resources which hosts VMs
-#     def cr_cltr(
-#         self, each_type: Dict[str, Any], each_cltr: Dict[str, Any]
-#     ) -> Dict[str, Any]:
-#         tmp_cltr = dict(
-#             name=each_cltr["name"],
-#             type=dict(name=each_type["name"]),
-#             comments=each_cltr.get("comment", ""),
-#         )
-#         # Optional settings (tenant, site or group), these can be set in cluster or inherited from cluster group
-#         type_site = each_type.get("site", None)
-#         if each_cltr.get("site", type_site) != None:
-#             tmp_cltr["site"] = dict(name=each_cltr.get("site", type_site))
-#         type_grp = each_type.get("group", None)
-#         if each_cltr.get("group", type_grp) != None:
-#             tmp_cltr["group"] = dict(name=each_cltr.get("group", type_grp))
-#         type_tags = each_type.get("tags", None)
-#         if each_cltr.get("tags", type_tags) != None:
-#             tmp_cltr["tags"] = self.nb.get_or_create_tag(
-#                 each_cltr.get("tags", type_tags)
-#             )
-#         # If tenant is undefined in cltr and cltr_grp gets the tenant name from the site (leaves blank if API call fails)
-#         if each_type.get("tenant") != None:
-#             type_tnt = each_type.get("tenant", None)
-#         elif each_type.get("tenant") == None:
-#             try:
-#                 site = each_cltr.get("site", type_site)
-#                 type_tnt = dict(self.nb.dcim.sites.get(name=site))["tenant"]["name"]
-#             except:
-#                 type_tnt = None
-#         if each_cltr.get("tenant", type_tnt) != None:
-#             tmp_cltr["tenant"] = dict(name=each_cltr.get("tenant", type_tnt))
-#         return tmp_cltr
-
-#     # ENGINE: Runs all the other methods in this class to create dict used to create nbox objects
-#     def create_vrtl(self) -> Dict[str, Any]:
-#         # 6a. CLTR_GRP: Create Cluster Group dictionary
-#         if self.cluster_group != None:
-#             for each_grp in self.cluster_group:
-#                 self.cltr_grp.append(self.cr_cltr_grp(each_grp))
-#         # 6b. CLTR_TYPE: Create Cluster Type dictionary
-#         for each_type in self.cluster_type:
-#             self.cltr_type.append(self.cr_cltr_grp(each_type))
-#             # 5c. CLTR_TYPE: Create Cluster Type dictionary
-#             if each_type.get("cluster") != None:
-#                 for each_cltr in each_type["cluster"]:
-#                     self.cltr.append(self.cr_cltr(each_type, each_cltr))
-#         # 6c. The Data Models returned to the main method that are used to create the objects
-#         return dict(cltr_type=self.cltr_type, cltr=self.cltr, cltr_grp=self.cltr_grp)
+    # ENGINE: Runs all the other methods in this class to create dict used to create nbox objects
+    def create_crt_pvdr(self) -> Dict[str, Any]:
+        # 5a. CRT_TYPE: Create Circuit Type dictionary
+        for each_type in self.circuit_type:
+            self.crt_type.append(self.cr_crt_type(each_type))
+        # 5b. PVDR: Create Provider dictionary
+        for each_pvdr in self.provider:
+            self.pvdr.append(self.cr_pvdr(each_pvdr))
+            # 4c. CRT: Create Circuit dictionary
+            for each_crt in each_pvdr["circuit"]:
+                self.crt.append(self.cr_crt(each_pvdr, each_crt))
+        # 5c. The Data Models returned to the main method that are used to create the objects
+        return dict(crt_type=self.crt_type, pvdr=self.pvdr, crt=self.crt)
 
 
-# # ----------------------------------------------------------------------------
-# # 7. CONTACTS: Creates the DM for organisation objects contacts, groups, roles and assignment
-# # ----------------------------------------------------------------------------
-# class Contacts():
-#     def __init__(
-#         self, nbox: "netbox", contact_role: List, contact_grp: List, contact_assign: List
-#     ) -> None:
-#         self.nb = nbox
-#         self.contact_role = contact_role
-#         self.contact_grp = contact_grp
-#         self.contact_assign = contact_assign
-#         self.cnt_role, self.cnt_grp, self.cnt, self.cnt_asgn = ([] for i in range(4))
-#     # 7a. CNT_ROLE: List of contact roles
-#     def cr_cnt_role(self, each_role: Dict[str, Any]) -> Dict[str, Any]:
-#         return dict(
-#             name=each_role["name"],
-#             slug=each_role.get("slug", self.nb.make_slug(each_role["name"])),
-#             description=each_role.get("descr", ""),
-#             tags=self.nb.get_or_create_tag(each_role.get("tags")),
-#         )
+# ----------------------------------------------------------------------------
+# 6. VIRTUAL: Creates the DM for Cluster, cluster type and cluster group
+# ----------------------------------------------------------------------------
+class Virtualisation:
+    def __init__(self, nbox: "netbox", cluster_group: List, cluster_type: List) -> None:
+        self.nb = nbox
+        self.cluster_group = cluster_group
+        self.cluster_type = cluster_type
+        self.cltr_type, self.cltr, self.cltr_grp = ([] for i in range(3))
 
-#     # 7b. CNT_GRP: List of contact groups
-#     def cr_cnt_grp(self, each_grp: Dict[str, Any]) -> Dict[str, Any]:
-#         return dict(
-#             name=each_grp["name"],
-#             slug=each_grp.get("slug", self.nb.make_slug(each_grp["name"])),
-#             description=each_grp.get("descr", ""),
-#             parent=None,
-#             tags=self.nb.get_or_create_tag(each_grp.get("tags")),
-#         )
+    # 6a. CLUSTER_GROUP: Optional, can be used to group clusters such as by region. Only required if used in clusters
+    def cr_cltr_grp(self, each_grp: Dict[str, Any]) -> Dict[str, Any]:
+        return dict(
+            name=each_grp["name"],
+            slug=self.nb.make_slug(each_grp.get("slug", each_grp["name"])),
+            description=each_grp.get("descr", ""),
+            tags=self.nb.get_or_create_tag(each_grp.get("tags")),
+        )
 
-#     # 7c. CNT: List of contacts
-#     def cr_cnt(self, grp: str, each_cnt: Dict[str, Any]) -> Dict[str, Any]:
-#         tmp_cnt = dict(
-#             name=each_cnt["name"],
-#             group=dict(name=grp),
-#             tags=self.nb.get_or_create_tag(each_cnt.get("tags")),
-#         )
-#         # Optional settings tjhat would break call if set to null
-#         if each_cnt.get("phone") != None:
-#             tmp_cnt["phone"] = each_cnt["phone"]
-#         if each_cnt.get("addr") != None:
-#             tmp_cnt["address"] = each_cnt["addr"]
-#         if each_cnt.get("email") != None:
-#             tmp_cnt["email"] = each_cnt["email"]
-#         if each_cnt.get("comments") != None:
-#             tmp_cnt["comments"] = each_cnt["comments"]
-#         return tmp_cnt
+    # 6b. CLUSTER_TYPE: Represents a technology or mechanism by which to group clusters
+    def cr_cltr_type(self, each_type: Dict[str, Any]) -> Dict[str, Any]:
+        return dict(
+            name=each_type["name"],
+            slug=self.nb.make_slug(each_type.get("slug", each_type["name"])),
+            description=each_type.get("descr", ""),
+            tags=self.nb.get_or_create_tag(each_type.get("tags")),
+        )
 
-#     # 7d. ASGN: List of contact assignments
-#     def cr_cnt_asgn(self, each_asgn: Dict[str, Any]) -> Dict[str, Any]:
-#         tmp_asgn = []
-#         for obj_type, obj in each_asgn["assign_to"].items():
-#             if "circuit" in obj_type or "provider" in obj_type:
-#                 api = "circuits." + obj_type
-#             elif "tenant" in obj_type:
-#                 api = "tenancy." + obj_type
-#             elif "cluster" in obj_type:
-#                 api = "virtualization." + obj_type
-#             else:
-#                 api = "dcim." + obj_type
-#             tmp_asgn.append(
-#                 dict(
-#                     content_type=api,
-#                     object_id=obj,
-#                     contact=each_asgn["contact"],
-#                     role={"name": each_asgn["role"]},
-#                     priority=each_asgn.get("priority", "primary"),
-#                 )
-#             )
-#         return tmp_asgn
+    # 6c. CLUSTERS: Holds VMs and physical resources which hosts VMs
+    def cr_cltr(
+        self, each_type: Dict[str, Any], each_cltr: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        tmp_cltr = dict(
+            name=each_cltr["name"],
+            type=dict(name=each_type["name"]),
+            comments=each_cltr.get("comment", ""),
+        )
+        # Optional settings (tenant, site or group), these can be set in cluster or inherited from cluster group
+        type_site = each_type.get("site", None)
+        if each_cltr.get("site", type_site) != None:
+            tmp_cltr["site"] = dict(name=each_cltr.get("site", type_site))
+        type_grp = each_type.get("group", None)
+        if each_cltr.get("group", type_grp) != None:
+            tmp_cltr["group"] = dict(name=each_cltr.get("group", type_grp))
+        type_tags = each_type.get("tags", None)
+        if each_cltr.get("tags", type_tags) != None:
+            tmp_cltr["tags"] = self.nb.get_or_create_tag(
+                each_cltr.get("tags", type_tags)
+            )
+        # If tenant is undefined in cltr and cltr_grp gets the tenant name from the site (leaves blank if API call fails)
+        if each_type.get("tenant") != None:
+            type_tnt = each_type.get("tenant", None)
+        elif each_type.get("tenant") == None:
+            try:
+                site = each_cltr.get("site", type_site)
+                type_tnt = dict(self.nb.dcim.sites.get(name=site))["tenant"]["name"]
+            except:
+                type_tnt = None
+        if each_cltr.get("tenant", type_tnt) != None:
+            tmp_cltr["tenant"] = dict(name=each_cltr.get("tenant", type_tnt))
+        return tmp_cltr
 
-#     # ENGINE: Runs all the other methods in this class to create dict used to create nbox objects
-#     def create_contact(self) -> Dict[str, Any]:
-#         # 7a. ROLE: Creates the Rack roles dictionary that can be used by a rack.
-#         for each_role in self.contact_role:
-#             self.cnt_role.append(self.cr_cnt_role(each_role))
-#         # 7b. GRP: Create contact group
-#         for each_grp in self.contact_grp:
-#             self.cnt_grp.append(self.cr_cnt_grp(each_grp))
-#             # 7c. CNT: Creates contact
-#             if each_grp.get("contact") != None:
-#                 for each_cnt in each_grp["contact"]:
-#                     self.cnt.append(self.cr_cnt(each_grp["name"], each_cnt))
-#         # 7d ASGN: Assigns contact and role to an object
-#         for each_asgn in self.contact_assign:
-#             self.cnt_asgn.extend(self.cr_cnt_asgn(each_asgn))
-#         # The Data Models returned to the main method that are used to create the object
-#         return dict(
-#             cnt_role=self.cnt_role,
-#             cnt_grp=self.cnt_grp,
-#             cnt=self.cnt,
-#             cnt_asgn=self.cnt_asgn,
-#         )
+    # ENGINE: Runs all the other methods in this class to create dict used to create nbox objects
+    def create_vrtl(self) -> Dict[str, Any]:
+        # 6a. CLTR_GRP: Create Cluster Group dictionary
+        if self.cluster_group != None:
+            for each_grp in self.cluster_group:
+                self.cltr_grp.append(self.cr_cltr_grp(each_grp))
+        # 6b. CLTR_TYPE: Create Cluster Type dictionary
+        for each_type in self.cluster_type:
+            self.cltr_type.append(self.cr_cltr_grp(each_type))
+            # 5c. CLTR_TYPE: Create Cluster Type dictionary
+            if each_type.get("cluster") != None:
+                for each_cltr in each_type["cluster"]:
+                    self.cltr.append(self.cr_cltr(each_type, each_cltr))
+        # 6c. The Data Models returned to the main method that are used to create the objects
+        return dict(cltr_type=self.cltr_type, cltr=self.cltr, cltr_grp=self.cltr_grp)
+
+
+# ----------------------------------------------------------------------------
+# 7. CONTACTS: Creates the DM for organisation objects contacts, groups, roles and assignment
+# ----------------------------------------------------------------------------
+class Contacts:
+    def __init__(
+        self,
+        nbox: "netbox",
+        contact_role: List,
+        contact_grp: List,
+        contact_assign: List,
+    ) -> None:
+        self.nb = nbox
+        self.contact_role = contact_role
+        self.contact_grp = contact_grp
+        self.contact_assign = contact_assign
+        self.cnt_role, self.cnt_grp, self.cnt, self.cnt_asgn = ([] for i in range(4))
+
+    # 7a. CNT_ROLE: List of contact roles
+    def cr_cnt_role(self, each_role: Dict[str, Any]) -> Dict[str, Any]:
+        return dict(
+            name=each_role["name"],
+            slug=self.nb.make_slug(each_role.get("slug", each_role["name"])),
+            description=each_role.get("descr", ""),
+            tags=self.nb.get_or_create_tag(each_role.get("tags")),
+        )
+
+    # 7b. CNT_GRP: List of contact groups
+    def cr_cnt_grp(self, each_grp: Dict[str, Any]) -> Dict[str, Any]:
+        return dict(
+            name=each_grp["name"],
+            slug=self.nb.make_slug(each_grp.get("slug", each_grp["name"])),
+            description=each_grp.get("descr", ""),
+            parent=None,
+            tags=self.nb.get_or_create_tag(each_grp.get("tags")),
+        )
+
+    # 7c. CNT: List of contacts
+    def cr_cnt(self, grp: str, each_cnt: Dict[str, Any]) -> Dict[str, Any]:
+        tmp_cnt = dict(
+            name=each_cnt["name"],
+            group=dict(name=grp),
+            tags=self.nb.get_or_create_tag(each_cnt.get("tags")),
+        )
+        # Optional settings tjhat would break call if set to null
+        if each_cnt.get("phone") != None:
+            tmp_cnt["phone"] = each_cnt["phone"]
+        if each_cnt.get("addr") != None:
+            tmp_cnt["address"] = each_cnt["addr"]
+        if each_cnt.get("email") != None:
+            tmp_cnt["email"] = each_cnt["email"]
+        if each_cnt.get("comments") != None:
+            tmp_cnt["comments"] = each_cnt["comments"]
+        return tmp_cnt
+
+    # 7d. ASGN: List of contact assignments
+    def cr_cnt_asgn(self, each_asgn: Dict[str, Any]) -> Dict[str, Any]:
+        tmp_asgn = []
+        for obj_type, obj in each_asgn["assign_to"].items():
+            if "circuit" in obj_type or "provider" in obj_type:
+                api = "circuits." + obj_type
+            elif "tenant" in obj_type:
+                api = "tenancy." + obj_type
+            elif "cluster" in obj_type:
+                api = "virtualization." + obj_type
+            else:
+                api = "dcim." + obj_type
+            tmp_asgn.append(
+                dict(
+                    content_type=api,
+                    object_id=obj,
+                    contact=each_asgn["contact"],
+                    role={"name": each_asgn["role"]},
+                    priority=each_asgn.get("priority", "primary"),
+                )
+            )
+        return tmp_asgn
+
+    # ENGINE: Runs all the other methods in this class to create dict used to create nbox objects
+    def create_contact(self) -> Dict[str, Any]:
+        # 7a. ROLE: Creates the Rack roles dictionary that can be used by a rack.
+        for each_role in self.contact_role:
+            self.cnt_role.append(self.cr_cnt_role(each_role))
+        # 7b. GRP: Create contact group
+        for each_grp in self.contact_grp:
+            self.cnt_grp.append(self.cr_cnt_grp(each_grp))
+            # 7c. CNT: Creates contact
+            if each_grp.get("contact") != None:
+                for each_cnt in each_grp["contact"]:
+                    self.cnt.append(self.cr_cnt(each_grp["name"], each_cnt))
+        # 7d ASGN: Assigns contact and role to an object
+        for each_asgn in self.contact_assign:
+            self.cnt_asgn.extend(self.cr_cnt_asgn(each_asgn))
+        # The Data Models returned to the main method that are used to create the object
+        return dict(
+            cnt_role=self.cnt_role,
+            cnt_grp=self.cnt_grp,
+            cnt=self.cnt,
+            cnt_asgn=self.cnt_asgn,
+        )

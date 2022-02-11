@@ -260,6 +260,8 @@ class Nbox:
         tmp_asgn = []
         # GET_ID: Get ID of the object the contact is to be assigned to
         try:
+            if api == "virtualization.clustergroups":
+                api = "virtualization.cluster-groups"
             obj_id = (
                 operator.attrgetter(api)(self.nb)
                 .get(**{api_fltr: asgn["object_id"]})
@@ -320,7 +322,11 @@ class Nbox:
             for each_asgn in obj_dm:
                 # NAME: Try get ID of the object the contact is to be assigned to using object name
                 try:
-                    tmp_obj_dm.extend(self.get_cnt_asgn_id(each_asgn, "name", err))
+                    if each_asgn["content_type"] == "circuits.circuit":
+                        tmp_fltr = "cid"
+                    else:
+                        tmp_fltr = "name"
+                    tmp_obj_dm.extend(self.get_cnt_asgn_id(each_asgn, tmp_fltr, err))
                 except:
                     # SLUG: Try get ID of the object the contact is to be assigned to using object slug
                     try:

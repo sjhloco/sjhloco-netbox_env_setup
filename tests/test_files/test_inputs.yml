@@ -99,8 +99,6 @@ provider:
   asn: 65105
   account_num: Mr evil
   portal_url: https://www.bt.com
-  noc_contact: btnoc@bt.com
-  admin_contact: btnoc@bt.com
   comments: BT are s#@t
   circuit:
     - cid: 666

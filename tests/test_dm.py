@@ -6,10 +6,9 @@ from netbox import Nbox
 from dm import Organisation
 from dm import Devices
 from dm import Ipam
-
-# from dm import Circuits
-# from dm import Virtualisation
-# from dm import Contacts
+from dm import Circuits
+from dm import Virtualisation
+from dm import Contacts
 import tests.test_files.device_types as device_types
 
 
@@ -494,226 +493,227 @@ class TestIpam:
         assert actual_result == desired_result, err_msg
 
 
-# # ----------------------------------------------------------------------------
-# # 4. CRT: Testing of circuits data-models
-# # ----------------------------------------------------------------------------
-# @pytest.mark.usefixtures("circuits_vars")
-# class TestCircuits:
+# ----------------------------------------------------------------------------
+# 5. CRT: Testing of circuits data-models
+# ----------------------------------------------------------------------------
+@pytest.mark.usefixtures("circuits_vars")
+class TestCircuits:
 
-#     # 4a. CRT_TYPE: Test method for creating dict to add a circuit type
-#     def test_cr_crt_type(self):
-#         err_msg = "❌ cr_cir_type: Creation of Circuit Type dictionary failed"
-#         global desired_crt_type
-#         desired_crt_type = {
-#             "description": crt_type["descr"],
-#             "name": crt_type["name"],
-#             "slug": crt_type["slug"],
-#         }
-#         actual_result = crt.cr_crt_type(crt_type)
-#         assert actual_result == desired_crt_type, err_msg
+    # 5a. CRT_TYPE: Test method for creating dict to add a circuit type
+    def test_cr_crt_type(self):
+        err_msg = "❌ cr_cir_type: Creation of Circuit Type dictionary failed"
+        global desired_crt_type
+        desired_crt_type = {
+            "description": crt_type["descr"],
+            "name": crt_type["name"],
+            "slug": crt_type["slug"],
+            "tags": [],
+        }
+        actual_result = crt.cr_crt_type(crt_type)
+        assert actual_result == desired_crt_type, err_msg
 
-#     # 4b. PROVIDER: Test method for creating dict to add a provider
-#     def test_cr_pvdr(self):
-#         err_msg = "❌ cr_pvdr: Creation of Provider dictionary failed"
-#         global desired_pvdr
-#         desired_pvdr = {
-#             "account": pvdr["account_num"],
-#             "admin_contact": pvdr["admin_contact"],
-#             "asn": pvdr["asn"],
-#             "comments": pvdr["comments"],
-#             "name": pvdr["name"],
-#             "noc_contact": pvdr["noc_contact"],
-#             "portal_url": pvdr["portal_url"],
-#             "slug": pvdr["slug"],
-#             "tags": [],
-#         }
-#         actual_result = crt.cr_pvdr(pvdr)
-#         assert actual_result == desired_pvdr, err_msg
+    # 5b. PROVIDER: Test method for creating dict to add a provider
+    def test_cr_pvdr(self):
+        err_msg = "❌ cr_pvdr: Creation of Provider dictionary failed"
+        global desired_pvdr
+        desired_pvdr = {
+            "account": pvdr["account_num"],
+            "asn": pvdr["asn"],
+            "comments": pvdr["comments"],
+            "name": pvdr["name"],
+            "portal_url": pvdr["portal_url"],
+            "slug": pvdr["slug"],
+            "tags": [],
+        }
+        actual_result = crt.cr_pvdr(pvdr)
+        assert actual_result == desired_pvdr, err_msg
 
-#     # 4c. CIRCUIT: Test method for creating dict to add a circuit
-#     def test_cr_crt(self):
-#         err_msg = "❌ cr_crt: Creation of Circuit Type dictionary failed"
-#         global desired_crt
-#         desired_crt = {
-#             "cid": str(cirt["cid"]),
-#             "commit_rate": cirt["commit_rate"],
-#             "description": cirt["descr"],
-#             "provider": {"name": pvdr["name"]},
-#             "tags": [],
-#             "tenant": {"name": cirt["tenant"]},
-#             "type": {"name": cirt["type"]},
-#         }
-#         actual_result = crt.cr_crt(pvdr, cirt)
-#         assert actual_result == desired_crt, err_msg
+    # 5c. CIRCUIT: Test method for creating dict to add a circuit
+    def test_cr_crt(self):
+        err_msg = "❌ cr_crt: Creation of Circuit Type dictionary failed"
+        global desired_crt
+        desired_crt = {
+            "cid": str(cirt["cid"]),
+            "commit_rate": cirt["commit_rate"],
+            "description": cirt["descr"],
+            "provider": {"name": pvdr["name"]},
+            "tags": [],
+            "tenant": {"name": cirt["tenant"]},
+            "type": {"name": cirt["type"]},
+        }
+        actual_result = crt.cr_crt(pvdr, cirt)
+        assert actual_result == desired_crt, err_msg
 
-#     # 1e. CRT: Test method for creating dict to add all circuits objects
-#     def test_create_crt_pvdr(self):
-#         err_msg = "❌ create_crt_pvdr: Creation of circuit objects dictionary failed"
-#         actual_result = crt.create_crt_pvdr()
-#         desired_result = dict(
-#             crt_type=[desired_crt_type],
-#             pvdr=[desired_pvdr],
-#             crt=[desired_crt],
-#         )
-#         assert actual_result == desired_result, err_msg
-
-
-# # ----------------------------------------------------------------------------
-# # 5. VRTL: Testing of virtualisation data-models
-# # ----------------------------------------------------------------------------
-# @pytest.mark.usefixtures("virtualisation_vars")
-# class TestVirtualisation:
-
-#     # 5a. CLTR_GRP: Test method for creating dict to add a cluster group
-#     def test_cr_cltr_grp(self):
-#         err_msg = "❌ cr_cltr_grp: Creation of cluster group dictionary failed"
-#         global desired_cltr_grp
-#         desired_cltr_grp = {
-#             "name": cltr_grp["name"],
-#             "slug": "utest_cluster_grp",
-#             "description": cltr_grp["descr"],
-#         }
-#         actual_result = vrtl.cr_cltr_grp(cltr_grp)
-#         assert actual_result == desired_cltr_grp, err_msg
-
-#     # 5b. CLTR_TYPE: Test method for creating dict to add a cluster type
-#     def test_cr_cltr_type(self):
-#         err_msg = "❌ cr_cltr_type: Creation of cluster type dictionary failed"
-#         global desired_cltr_type
-#         desired_cltr_type = {
-#             "description": "",
-#             "name": cltr_type["name"],
-#             "slug": "utest_cltr_type",
-#         }
-#         actual_result = vrtl.cr_cltr_type(cltr_type)
-#         assert actual_result == desired_cltr_type, err_msg
-
-#     # 5c. CLTR: Test method for creating dict to add a cluster
-#     def test_cr_cltr(self):
-#         err_msg = "❌ cr_cltr: Creation of cluster dictionary failed"
-#         global desired_cltr1
-#         desired_cltr1 = {
-#             "comments": cltr1["comment"],
-#             "group": {"name": cltr_type["group"]},
-#             "name": cltr1["name"],
-#             "site": {"name": cltr_type["site"]},
-#             "tenant": {"name": cltr_type["tenant"]},
-#             "type": {"name": cltr_type["name"]},
-#         }
-#         actual_result = vrtl.cr_cltr(cltr_type, cltr1)
-#         assert actual_result == desired_cltr1, err_msg
-
-#     # 5d. CLTR: Test method for creating dict to add a cluster with inherited tenant and site
-#     def test_cr_cltr_inherited(self):
-#         err_msg = (
-#             "❌ cr_cltr: Creation of cluster with inherited objects dictionary failed"
-#         )
-#         global desired_cltr2
-#         desired_cltr2 = {
-#             "comments": "",
-#             "group": {"name": cltr2["group"]},
-#             "name": cltr2["name"],
-#             "site": {"name": cltr2["site"]},
-#             "tenant": {"name": cltr2["tenant"]},
-#             "type": {"name": cltr_type["name"]},
-#         }
-#         actual_result = vrtl.cr_cltr(cltr_type, cltr2)
-#         assert actual_result == desired_cltr2, err_msg
-
-#     # 5e. VRTL: Test method for creating dict to add all virtualisation objects
-#     def test_create_vrtl(self):
-#         err_msg = "❌ create_vrtl: Creation of virtualisation objects dictionary failed"
-#         actual_result = vrtl.create_vrtl()
-#         desired_cltr = [desired_cltr1]
-#         desired_cltr.append(desired_cltr2)
-#         desired_result = dict(
-#             cltr_type=[desired_cltr_type],
-#             cltr_grp=[desired_cltr_grp],
-#             cltr=desired_cltr,
-#         )
-#         assert actual_result == desired_result, err_msg
+    # 5d. CRT: Test method for creating dict to add all circuits objects
+    def test_create_crt_pvdr(self):
+        err_msg = "❌ create_crt_pvdr: Creation of circuit objects dictionary failed"
+        actual_result = crt.create_crt_pvdr()
+        desired_result = dict(
+            crt_type=[desired_crt_type],
+            pvdr=[desired_pvdr],
+            crt=[desired_crt],
+        )
+        assert actual_result == desired_result, err_msg
 
 
-# # ----------------------------------------------------------------------------
-# # 6. CNT: Testing of contact data-models
-# # ----------------------------------------------------------------------------
-# @pytest.mark.usefixtures("contact_vars")
-# class TestContacts:
+# ----------------------------------------------------------------------------
+# 5. VRTL: Testing of virtualisation data-models
+# ----------------------------------------------------------------------------
+@pytest.mark.usefixtures("virtualisation_vars")
+class TestVirtualisation:
 
-#     # 6a. CNT_ROLE: Test method for creating dict to add a Contact Role
-#     def test_cr_cnt_role(self):
-#         err_msg = "❌ cr_cnt_role: Creation of Contact Role dictionary failed"
-#         global desired_cnt_role
-#         desired_cnt_role = {
-#             "description": cnt_role["descr"],
-#             "name": cnt_role["name"],
-#             "slug": cnt_role["slug"],
-#             "tags": [],
-#         }
-#         actual_result = cnt.cr_cnt_role(cnt_role)
-#         assert actual_result == desired_cnt_role, err_msg
+    # 5a. CLTR_GRP: Test method for creating dict to add a cluster group
+    def test_cr_cltr_grp(self):
+        err_msg = "❌ cr_cltr_grp: Creation of cluster group dictionary failed"
+        global desired_cltr_grp
+        desired_cltr_grp = {
+            "name": cltr_grp["name"],
+            "slug": make_slug(cltr_grp["name"]),
+            "description": cltr_grp["descr"],
+            "tags": [],
+        }
+        actual_result = vrtl.cr_cltr_grp(cltr_grp)
+        assert actual_result == desired_cltr_grp, err_msg
 
-#     # 6b. CNT_GRP: Test method for creating dict to add a Contact Group
-#     def test_cr_cnt_grp(self):
-#         err_msg = "❌ cr_cnt_grp: Creation of contact group dictionary failed"
-#         global desired_cnt_grp
-#         desired_cnt_grp = {
-#             "description": cnt_grp["descr"],
-#             "name": cnt_grp["name"],
-#             "parent": None,
-#             "slug": cnt_grp["slug"],
-#             "tags": [],
-#         }
-#         actual_result = cnt.cr_cnt_grp(cnt_grp)
-#         assert actual_result == desired_cnt_grp, err_msg
+    # 5b. CLTR_TYPE: Test method for creating dict to add a cluster type
+    def test_cr_cltr_type(self):
+        err_msg = "❌ cr_cltr_type: Creation of cluster type dictionary failed"
+        global desired_cltr_type
+        desired_cltr_type = {
+            "description": "",
+            "name": cltr_type["name"],
+            "slug": make_slug(cltr_type["name"]),
+            "tags": [],
+        }
+        actual_result = vrtl.cr_cltr_type(cltr_type)
+        assert actual_result == desired_cltr_type, err_msg
 
-#     # 6c. CNT: Test method for creating dict to add a Contact
-#     def test_cr_cnt(self):
-#         err_msg = "❌ cr_cnt: Creation of contact dictionary failed"
-#         global desired_cnt
-#         desired_cnt = {
-#             "address": contact["addr"],
-#             "comments": contact["comments"],
-#             "email": contact["email"],
-#             "group": {"name": cnt_grp["name"]},
-#             "name": contact["name"],
-#             "phone": contact["phone"],
-#             "tags": [],
-#         }
-#         actual_result = cnt.cr_cnt(cnt_grp["name"], contact)
-#         assert actual_result == desired_cnt, err_msg
+    # 5c. CLTR: Test method for creating dict to add a cluster
+    def test_cr_cltr(self):
+        err_msg = "❌ cr_cltr: Creation of cluster dictionary failed"
+        global desired_cltr1
+        desired_cltr1 = {
+            "comments": cltr1["comment"],
+            "group": {"name": cltr_type["group"]},
+            "name": cltr1["name"],
+            "site": {"name": cltr_type["site"]},
+            "tenant": {"name": cltr_type["tenant"]},
+            "type": {"name": cltr_type["name"]},
+        }
+        actual_result = vrtl.cr_cltr(cltr_type, cltr1)
+        assert actual_result == desired_cltr1, err_msg
 
-#     # 6d. CNT_ASGN: Test method for creating dict to add a Contact Assignment
-#     def test_cr_cnt_asgn(self):
-#         err_msg = "❌ cr_cnt_asgn: Creation of contact assignment dictionary failed"
-#         global desired_cnt_asgn
-#         desired_cnt_asgn = [
-#             {
-#                 "contact": cnt_asgn["contact"],
-#                 "content_type": "tenancy." + list(cnt_asgn["assign_to"].keys())[0],
-#                 "object_id": cnt_asgn["assign_to"]["tenant"],
-#                 "priority": "primary",
-#                 "role": {"name": cnt_asgn["role"]},
-#             },
-#             {
-#                 "contact": cnt_asgn["contact"],
-#                 "content_type": "dcim." + list(cnt_asgn["assign_to"].keys())[1],
-#                 "object_id": cnt_asgn["assign_to"]["site"],
-#                 "priority": "primary",
-#                 "role": {"name": cnt_asgn["role"]},
-#             },
-#         ]
-#         actual_result = cnt.cr_cnt_asgn(cnt_asgn)
-#         assert actual_result == desired_cnt_asgn, err_msg
+    # 5d. CLTR: Test method for creating dict to add a cluster with inherited tenant and site
+    def test_cr_cltr_inherited(self):
+        err_msg = (
+            "❌ cr_cltr: Creation of cluster with inherited objects dictionary failed"
+        )
+        global desired_cltr2
+        desired_cltr2 = {
+            "comments": "",
+            "group": {"name": cltr2["group"]},
+            "name": cltr2["name"],
+            "site": {"name": cltr2["site"]},
+            "tenant": {"name": cltr2["tenant"]},
+            "type": {"name": cltr_type["name"]},
+        }
+        actual_result = vrtl.cr_cltr(cltr_type, cltr2)
+        assert actual_result == desired_cltr2, err_msg
 
-#     # 6e. CNTL: Test method for creating dict to add all Contact objects
-#     def test_create_contact(self):
-#         err_msg = "❌ create_vrtl: Creation of contact objects dictionary failed"
-#         actual_result = cnt.create_contact()
-#         desired_result = dict(
-#             cnt_role=[desired_cnt_role],
-#             cnt_grp=[desired_cnt_grp],
-#             cnt=[desired_cnt],
-#             cnt_asgn=desired_cnt_asgn,
-#         )
-#         assert actual_result == desired_result, err_msg
+    # 5e. VRTL: Test method for creating dict to add all virtualisation objects
+    def test_create_vrtl(self):
+        err_msg = "❌ create_vrtl: Creation of virtualisation objects dictionary failed"
+        actual_result = vrtl.create_vrtl()
+        desired_cltr = [desired_cltr1]
+        desired_cltr.append(desired_cltr2)
+        desired_result = dict(
+            cltr_type=[desired_cltr_type],
+            cltr_grp=[desired_cltr_grp],
+            cltr=desired_cltr,
+        )
+        assert actual_result == desired_result, err_msg
+
+
+# ----------------------------------------------------------------------------
+# 6. CNT: Testing of contact data-models
+# ----------------------------------------------------------------------------
+@pytest.mark.usefixtures("contact_vars")
+class TestContacts:
+
+    # 6a. CNT_ROLE: Test method for creating dict to add a Contact Role
+    def test_cr_cnt_role(self):
+        err_msg = "❌ cr_cnt_role: Creation of Contact Role dictionary failed"
+        global desired_cnt_role
+        desired_cnt_role = {
+            "description": cnt_role["descr"],
+            "name": cnt_role["name"],
+            "slug": cnt_role["slug"],
+            "tags": [],
+        }
+        actual_result = cnt.cr_cnt_role(cnt_role)
+        assert actual_result == desired_cnt_role, err_msg
+
+    # 6b. CNT_GRP: Test method for creating dict to add a Contact Group
+    def test_cr_cnt_grp(self):
+        err_msg = "❌ cr_cnt_grp: Creation of contact group dictionary failed"
+        global desired_cnt_grp
+        desired_cnt_grp = {
+            "description": cnt_grp["descr"],
+            "name": cnt_grp["name"],
+            "parent": None,
+            "slug": cnt_grp["slug"],
+            "tags": [],
+        }
+        actual_result = cnt.cr_cnt_grp(cnt_grp)
+        assert actual_result == desired_cnt_grp, err_msg
+
+    # 6c. CNT: Test method for creating dict to add a Contact
+    def test_cr_cnt(self):
+        err_msg = "❌ cr_cnt: Creation of contact dictionary failed"
+        global desired_cnt
+        desired_cnt = {
+            "address": contact["addr"],
+            "comments": contact["comments"],
+            "email": contact["email"],
+            "group": {"name": cnt_grp["name"]},
+            "name": contact["name"],
+            "phone": contact["phone"],
+            "tags": [],
+        }
+        actual_result = cnt.cr_cnt(cnt_grp["name"], contact)
+        assert actual_result == desired_cnt, err_msg
+
+    # 6d. CNT_ASGN: Test method for creating dict to add a Contact Assignment
+    def test_cr_cnt_asgn(self):
+        err_msg = "❌ cr_cnt_asgn: Creation of contact assignment dictionary failed"
+        global desired_cnt_asgn
+        desired_cnt_asgn = [
+            {
+                "contact": cnt_asgn["contact"],
+                "content_type": "tenancy." + list(cnt_asgn["assign_to"].keys())[0],
+                "object_id": cnt_asgn["assign_to"]["tenant"],
+                "priority": "primary",
+                "role": {"name": cnt_asgn["role"]},
+            },
+            {
+                "contact": cnt_asgn["contact"],
+                "content_type": "dcim." + list(cnt_asgn["assign_to"].keys())[1],
+                "object_id": cnt_asgn["assign_to"]["site"],
+                "priority": "primary",
+                "role": {"name": cnt_asgn["role"]},
+            },
+        ]
+        actual_result = cnt.cr_cnt_asgn(cnt_asgn)
+        assert actual_result == desired_cnt_asgn, err_msg
+
+    # 6e. CNTL: Test method for creating dict to add all Contact objects
+    def test_create_contact(self):
+        err_msg = "❌ create_vrtl: Creation of contact objects dictionary failed"
+        actual_result = cnt.create_contact()
+        desired_result = dict(
+            cnt_role=[desired_cnt_role],
+            cnt_grp=[desired_cnt_grp],
+            cnt=[desired_cnt],
+            cnt_asgn=desired_cnt_asgn,
+        )
+        assert actual_result == desired_result, err_msg

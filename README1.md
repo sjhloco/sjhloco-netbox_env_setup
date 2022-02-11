@@ -85,26 +85,40 @@ VRFs and prefixes are either defined under the role (non-VLAN environments like 
 | role.site.vrf | VRFs whose prefixes arent associated to VLANs | name, ***prefix*** | descr, tags, rd, import_rt, export_rt, unique, tenant
 | role.site.vrf.prefix | List of prefixes within this VRF | pfx | descr, tags, pool, tenant
 
-### Provider -  *Circuit-type, Provider, Circuit*
+### Provider/ Circuit -  *Circuit-type, Provider, Circuit*
 
 Providers are the ISPs that hold individual circuits with pre-defined circuit-types
 
 | Object   | Description          | Mandatory | Optional |
 | -------- | -------------------- | --------- | ---------|
+| circuit_type | List of circuit types | name | slug, descr, tags
+| provider | List of ISPs | name | slug, comments, tags, asn, account_num, portal_url ***circuit***
+| provider.circuit | List of this providers circuits | cid, type | descr, tags, tenant, commit_rate
 
-### Virtual = *Cluster-group, Cluster-type, Cluster*
+
+
+### Virtual - *Cluster-group, Cluster-type, Cluster*
 
 Clusters are groupings of resources which VMs run within. Cluster-groups and types allow further grouping of clusters based on things such as location or technology.\
 Site, tenant, cluster-group and tags can be set globally for all members of a cluster-type or be overridden on a per-cluster basis.
 
 | Object   | Description          | Mandatory | Optional |
 | -------- | -------------------- | --------- | ---------|
+| cluster_group | List of groups (optional) | name | slug, descr, tags
+| cluster_type | List of cluster type | name | slug, descr, tags, ***cluster***
+| cluster_type.cluster | List of clusters of this cluster type | name | comment, tags, site, tenant, group,
 
-### Contacts -
+### Contacts - *Contact-role, Contact-group, Contact Assignment*
+
+Contacts are actually created under the organisation menu but are defined separately as they can be assigned to a tenant, site, location, rack, manufacturer, clustergroup, cluster, provider, circuit (possibly also Device, PowerPanel, Region, SiteGroup, and VirtualMachine but not tested)
 
 
 | Object   | Description          | Mandatory | Optional |
 | -------- | -------------------- | --------- | ---------|
+| contact_role | List of contact roles (optional) | name | slug, descr, tags
+| contact_group | List of contact groups | name | slug, descr, tags
+| contact_group.contact | List of contacts (can only be member of 1 group) | name | comments, tags, phone, email, addr
+| contact_assign | Assign contacts to roles | assign_to, role, contact | priority
 
 
 ## Installation and Prerequisites

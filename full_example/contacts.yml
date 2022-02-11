@@ -1,0 +1,41 @@
+# This example shows all the options that are possible to be defined. Mandatory dictionaries must be defined and Optional are at your discretion
+
+# ----------------------------------------------------------------------------
+# CONTACT: Contact-role, Contact Group, Contact Assignment
+# ----------------------------------------------------------------------------
+# CNT_ROLE: At contact assignment a contact can optionally be assigned a role. Name is mandatory, slug, descr and tags optional
+contact_role:
+  - {name: operational, slug: operational, descr: Day to day operations, tags: {opp: 9e9e9e}}
+  - {name: emergency, descr: emergency contacts}
+  - {name: facilities}
+# GROUP: A group contains a list of contacts
+contact_group:                          # Mandatory - List of contact groups
+  - name: FG facilities                 # Mandatory - Name of the group
+    descr: emergency contacts           # Optional
+    slug: fg_fac                        # Optional
+    # CNT: Each contact is a member of a group (can only be a member of one group)
+    contact:                            # Optional
+      - name: Mr Evil                   # Mandatory - Name of the contact
+        phone: 123456789                # Optional
+        email: evil@corp.com            # Optional
+        addr: Docklands, London         # Optional
+        comments: senior manager        # Optional
+        tags: {evil: 9e9e9e}            # Optional - Dictionary of {name: colour}, can have multiple tags
+      - name: Mrs Evil
+      - name: Dr Evil
+  - name: Network team
+    slug: networks
+    contact:
+      - name: Mr Robot
+        phone: 123456789
+
+# ASSIGN: Assign user and role to an object (group assignment is automatic). Provide name (or slug if is not a unique name) of the object to assign to
+contact_assign:
+  - assign_to: {clustergroup: Azure UK West}     # Mandatory - tenant, site, location, rack, manufacturer, clustergroup, cluster, provider, circuit
+    role: operational                             # Mandatory - Pre-defined contact-role
+    contact: [Mr Evil, Mrs Evil]                  # Mandatory - List of contacts
+    priority: secondary                           # Optional - Defaults to primary, other options are secondary, tertiary, inactive
+  - assign_to: {tenant: "tenant1", site: "site1", location: "DC1 Floor1", rack: "DC1_FL1_A1", manufacturer: "Cisco", cluster: "AZURE VSE", provider: "BT Group", circuit: "test_tag"}
+    role: facilities
+    contact: [Mr Robot, Dr Evil]
+    priority: primary
