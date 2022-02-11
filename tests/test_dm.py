@@ -5,8 +5,8 @@ import os
 from netbox import Nbox
 from dm import Organisation
 from dm import Devices
+from dm import Ipam
 
-# from dm import Ipam
 # from dm import Circuits
 # from dm import Virtualisation
 # from dm import Contacts
@@ -35,7 +35,9 @@ def load_vars():
     global my_vars, nbox
     with open(test_input, "r") as file_content:
         my_vars = yaml.load(file_content, Loader=yaml.FullLoader)
-    nbox = Nbox(netbox_url, token)
+
+    tag_exists, tag_created, rt_exists, rt_created = ([] for i in range(4))
+    nbox = Nbox(netbox_url, token, tag_exists, tag_created, rt_exists, rt_created)
 
 
 # Load the vars for Organisation class
@@ -71,7 +73,7 @@ def ipam_vars():
     global ipam, rir, aggr, role, vlan_grp, vlan, vrf, pfx
     ipam = Ipam(nbox, my_vars["rir"], my_vars["role"])
     rir = my_vars["rir"][0]
-    aggr = my_vars["rir"][0]["ranges"][0]
+    aggr = my_vars["rir"][0]["aggregate"][0]
     role = my_vars["role"][0]
     vlan_grp = my_vars["role"][0]["site"][0]["vlan_grp"][0]
     vlan = my_vars["role"][0]["site"][0]["vlan_grp"][0]["vlan"][0]
@@ -357,136 +359,139 @@ class TestDevices:
         assert actual_result == desired_result, err_msg
 
 
-# # ----------------------------------------------------------------------------
-# # 3. IPAM: Testing of IPAM data-models
-# # ----------------------------------------------------------------------------
-# @pytest.mark.usefixtures("ipam_vars")
-# class TestIpam:
+# ----------------------------------------------------------------------------
+# 3. IPAM: Testing of IPAM data-models
+# ----------------------------------------------------------------------------
+@pytest.mark.usefixtures("ipam_vars")
+class TestIpam:
 
-#     # 3a. RIR: Test method for creating dict to add a RIR
-#     def test_cr_rir(self):
-#         err_msg = "❌ cr_rir: Creation of RIR dictionary failed"
-#         global desired_rir
-#         desired_rir = {
-#             "description": rir["descr"],
-#             "is_private": rir["is_private"],
-#             "name": rir["name"],
-#             "slug": "rfc1918",
-#         }
-#         actual_result = ipam.cr_rir(rir)
-#         assert actual_result == desired_rir, err_msg
+    # 3a. RIR: Test method for creating dict to add a RIR
+    def test_cr_rir(self):
+        err_msg = "❌ cr_rir: Creation of RIR dictionary failed"
+        global desired_rir
+        desired_rir = {
+            "description": rir["descr"],
+            "is_private": rir["is_private"],
+            "name": rir["name"],
+            "slug": make_slug(rir["name"]),
+            "tags": [],
+        }
+        actual_result = ipam.cr_rir(rir)
+        assert actual_result == desired_rir, err_msg
 
-#     # 3b. AGGR: Test method for creating dict to add a RIR aggregate
-#     def test_cr_aggr(self):
-#         err_msg = "❌ cr_aggr: Creation of RIR Aggregate dictionary failed"
-#         global desired_aggr
-#         desired_aggr = {
-#             "description": aggr["descr"],
-#             "prefix": aggr["prefix"],
-#             "rir": {"name": rir["name"]},
-#             "tags": [],
-#         }
-#         actual_result = ipam.cr_aggr(rir, aggr)
-#         assert actual_result == desired_aggr, err_msg
+    # 3b. AGGR: Test method for creating dict to add a RIR aggregate
+    def test_cr_aggr(self):
+        err_msg = "❌ cr_aggr: Creation of RIR Aggregate dictionary failed"
+        global desired_aggr
+        desired_aggr = {
+            "description": aggr["descr"],
+            "prefix": aggr["prefix"],
+            "rir": {"name": rir["name"]},
+            "tags": [],
+        }
+        actual_result = ipam.cr_aggr(rir, aggr)
+        assert actual_result == desired_aggr, err_msg
 
-#     # 3c. ROLE: Test method for creating dict to add a VRF/VLAN Role
-#     def test_cr_role(self):
-#         err_msg = "❌ cr_role: Creation of VRF/VLAN Role dictionary failed"
-#         global desired_role
-#         desired_role = {
-#             "description": role["descr"],
-#             "name": role["name"],
-#             "slug": "utest_role",
-#         }
-#         actual_result = ipam.cr_role(role)
-#         assert actual_result == desired_role, err_msg
+    # 3c. ROLE: Test method for creating dict to add a VRF/VLAN Role
+    def test_cr_role(self):
+        err_msg = "❌ cr_role: Creation of VRF/VLAN Role dictionary failed"
+        global desired_role
+        desired_role = {
+            "description": role["descr"],
+            "name": role["name"],
+            "slug": make_slug(role["name"]),
+            "tags": [],
+        }
+        actual_result = ipam.cr_role(role)
+        assert actual_result == desired_role, err_msg
 
-#     # 3d. VL_GRP: Test method for creating dict to add a VLAN Group
-#     def test_cr_vl_grp(self):
-#         err_msg = "❌ cr_vl_grp: Creation of VLAN Group dictionary failed"
-#         global desired_vl_grp
-#         desired_vl_grp = {
-#             "description": vlan_grp["descr"],
-#             "name": vlan_grp["name"],
-#             "site": {"name": role["site"][0]["name"]},
-#             "slug": make_slug(vlan_grp["name"]),
-#         }
-#         actual_result = ipam.cr_vl_grp(role["site"][0]["name"], vlan_grp)
-#         assert actual_result == desired_vl_grp, err_msg
+    # 3d. VL_GRP: Test method for creating dict to add a VLAN Group
+    def test_cr_vl_grp(self):
+        err_msg = "❌ cr_vl_grp: Creation of VLAN Group dictionary failed"
+        global desired_vl_grp
+        desired_vl_grp = {
+            "description": vlan_grp["descr"],
+            "name": vlan_grp["name"],
+            "site": {"name": role["site"][0]["name"]},
+            "slug": make_slug(vlan_grp["name"]),
+            "tags": [],
+        }
+        actual_result = ipam.cr_vl_grp(role["site"][0]["name"], vlan_grp)
+        assert actual_result == desired_vl_grp, err_msg
 
-#     # 3e. VLAN: Test method for creating dict to add a VLAN
-#     def test_cr_vlan(self):
-#         err_msg = "❌ cr_vlan: Creation of VLAN Group dictionary failed"
-#         global desired_vlan
-#         desired_vlan = {
-#             "description": vlan["descr"],
-#             "group": {"name": vlan_grp["name"]},
-#             "name": vlan["name"],
-#             "role": {"name": role["name"]},
-#             "tags": [],
-#             "tenant": {"name": vlan_grp["tenant"]},
-#             "vid": vlan["id"],
-#         }
-#         actual_result = ipam.cr_vlan(role["name"], "UTEST_tenant1", vlan_grp, vlan)
-#         assert actual_result == desired_vlan, err_msg
+    # 3e. VLAN: Test method for creating dict to add a VLAN
+    def test_cr_vlan(self):
+        err_msg = "❌ cr_vlan: Creation of VLAN Group dictionary failed"
+        global desired_vlan
+        desired_vlan = {
+            "description": vlan["descr"],
+            "group": {"name": vlan_grp["name"]},
+            "name": vlan["name"],
+            "role": {"name": role["name"]},
+            "tags": [],
+            "tenant": {"name": vlan_grp["tenant"]},
+            "vid": vlan["id"],
+        }
+        actual_result = ipam.cr_vlan(role["name"], "UTEST_tenant1", vlan_grp, vlan)
+        assert actual_result == desired_vlan, err_msg
 
-#     # 3f. VRF: Test method for creating dict to add a VRF (no VLAN association)
-#     def test_cr_vrf(self):
-#         err_msg = "❌ cr_vrf Creation of VRF dictionary (no VLAN association) failed"
-#         global desired_vrf
-#         desired_vrf = {
-#             "description": vrf["descr"],
-#             "enforce_unique": True,
-#             "export_targets": [],
-#             "import_targets": [],
-#             "name": vrf["name"],
-#             "rd": vrf["rd"],
-#             "tags": [],
-#             "tenant": {"name": vrf["tenant"]},
-#         }
-#         actual_result = ipam.cr_vrf("UTEST_tenant1", vrf)
-#         assert actual_result == desired_vrf, err_msg
+    # 3f. VRF: Test method for creating dict to add a VRF (no VLAN association)
+    def test_cr_vrf(self):
+        err_msg = "❌ cr_vrf Creation of VRF dictionary (no VLAN association) failed"
+        global desired_vrf
+        desired_vrf = {
+            "description": vrf["descr"],
+            "enforce_unique": True,
+            "export_targets": [],
+            "import_targets": [],
+            "name": vrf["name"],
+            "rd": vrf["rd"],
+            "tags": [],
+            "tenant": {"name": vrf["tenant"]},
+        }
+        actual_result = ipam.cr_vrf("UTEST_tenant1", vrf)
+        assert actual_result == desired_vrf, err_msg
 
-#     # 3g. VRF_VLAN: Test method for creating dict to add a VRF within VLAN Group
-#     def test_cr_pfx(self):
-#         err_msg = "❌ cr_pfx Creation of VRF dictionary (within VLAN Group) failed"
-#         global desired_pfx
-#         desired_pfx = {
-#             "description": pfx["descr"],
-#             "is_pool": pfx["pool"],
-#             "prefix": pfx["pfx"],
-#             "role": {"name": role["name"]},
-#             "site": {"name": role["site"][0]["name"]},
-#             "tags": [],
-#             "tenant": {"name": pfx["tenant"]},
-#             "vl_grp": vlan_grp["name"],
-#             "vlan": pfx["vl"],
-#             "vrf": {"name": vrf["name"]},
-#         }
-#         actual_result = ipam.cr_pfx(
-#             role["name"],
-#             role["site"][0]["name"],
-#             "",
-#             vlan_grp["name"],
-#             vrf["name"],
-#             pfx,
-#         )
-#         assert actual_result == desired_pfx, err_msg
+    # 3g. VRF_VLAN: Test method for creating dict to add a VRF within VLAN Group
+    def test_cr_pfx(self):
+        err_msg = "❌ cr_pfx Creation of VRF dictionary (within VLAN Group) failed"
+        global desired_pfx
+        desired_pfx = {
+            "description": pfx["descr"],
+            "is_pool": pfx["pool"],
+            "prefix": pfx["pfx"],
+            "role": {"name": role["name"]},
+            "site": {"name": role["site"][0]["name"]},
+            "tags": [],
+            "tenant": {"name": pfx["tenant"]},
+            "vl_grp": vlan_grp["name"],
+            "vlan": pfx["vl"],
+            "vrf": {"name": vrf["name"]},
+        }
+        actual_result = ipam.cr_pfx(
+            role["name"],
+            role["site"][0]["name"],
+            "",
+            vlan_grp["name"],
+            vrf["name"],
+            pfx,
+        )
+        assert actual_result == desired_pfx, err_msg
 
-#     # 3h. IPAM: Test method for creating dict to add all IPAM objects
-#     def test_create_ipam(self):
-#         err_msg = "❌ create_ipam: Creation of IPAM objects dictionary failed"
-#         actual_result = ipam.create_ipam()
-#         desired_result = dict(
-#             rir=[desired_rir],
-#             aggr=[desired_aggr],
-#             role=[desired_role],
-#             vlan_grp=[desired_vl_grp],
-#             vlan=[desired_vlan],
-#             vrf=[desired_vrf],
-#             prefix=[desired_pfx],
-#         )
-#         assert actual_result == desired_result, err_msg
+    # 3h. IPAM: Test method for creating dict to add all IPAM objects
+    def test_create_ipam(self):
+        err_msg = "❌ create_ipam: Creation of IPAM objects dictionary failed"
+        actual_result = ipam.create_ipam()
+        desired_result = dict(
+            rir=[desired_rir],
+            aggr=[desired_aggr],
+            role=[desired_role],
+            vlan_grp=[desired_vl_grp],
+            vlan=[desired_vlan],
+            vrf=[desired_vrf],
+            prefix=[desired_pfx],
+        )
+        assert actual_result == desired_result, err_msg
 
 
 # # ----------------------------------------------------------------------------

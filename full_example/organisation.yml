@@ -1,5 +1,4 @@
-# This example shows all the options that are possible to be defined
-# Mandatory dictionaries must be defined and Optional are at your discretion
+# This example shows all the options that are possible to be defined. Mandatory dictionaries must be defined and Optional are at your discretion
 
 # ----------------------------------------------------------------------------
 # ORGANISATION: Tenants, sites, locations (and child locations), racks and rack-roles

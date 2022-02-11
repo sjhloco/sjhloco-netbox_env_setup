@@ -1,5 +1,4 @@
-# This example shows all the options that are possible to be defined
-# Mandatory dictionaries must be defined and Optional are at your discretion
+# This example shows all the options that are possible to be defined. Mandatory dictionaries must be defined and Optional are at your discretion
 
 # ----------------------------------------------------------------------------
 # DEVICES: Manufacturer, platform, device_type and device role
@@ -9,8 +8,7 @@ manufacturer:                           # Mandatory - List of all device manufac
   - name: Cisco                         # Mandatory - Name of the manufacturer
     slug: cisco                         # Optional
     descr: All Cisco devices            # Optional
-    tags: {mftr1: c0c0c0}             # Optional - Dictionary of {name: colour}, can have multiple tags
-
+    tags: {mftr1: c0c0c0}               # Optional - Dictionary of {name: colour}, can have multiple tags
     # PLTM: Used for NAPALM. driver and slug optional, if driver not defined uses the name
     platform:                           # Optional
       - {name: ASA, slug: asa, driver: asa, tags: {asa: c0c0c0}}

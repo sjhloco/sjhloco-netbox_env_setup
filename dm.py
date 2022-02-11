@@ -274,12 +274,13 @@ class Ipam:
     def cr_rir(self, each_rir: Dict[str, Any]) -> Dict[str, Any]:
         return dict(
             name=each_rir["name"],
-            slug=each_rir.get("slug", self.nb.make_slug(each_rir["name"])),
+            slug=self.nb.make_slug(each_rir.get("slug", each_rir["name"])),
             description=each_rir.get("descr", ""),
             is_private=each_rir.get("is_private", False),
+            tags=self.nb.get_or_create_tag(each_rir.get("tags")),
         )
 
-    # 4b. AGGREGATE: Create ranges that are associated to the RIR
+    # 4b. AGGREGATE: Create aggregates that are associated to the RIR
     def cr_aggr(
         self, each_rir: Dict[str, Any], each_aggr: Dict[str, Any]
     ) -> Dict[str, Any]:
@@ -294,17 +295,19 @@ class Ipam:
     def cr_role(self, each_role: Dict[str, Any]) -> Dict[str, Any]:
         return dict(
             name=each_role["name"],
-            slug=each_role.get("slug", self.nb.make_slug(each_role["name"])),
+            slug=self.nb.make_slug(each_role.get("slug", each_role["name"])),
             description=each_role.get("descr", ""),
+            tags=self.nb.get_or_create_tag(each_role.get("tags")),
         )
 
     # 4d. VL_GRP: Creates per site VLAN group that holds VLANs that are unique to that group
     def cr_vl_grp(self, site: str, each_vlgrp: Dict[str, Any]) -> Dict[str, Any]:
         return dict(
             name=each_vlgrp["name"],
-            slug=each_vlgrp.get("slug", self.nb.make_slug(each_vlgrp["name"])),
+            slug=self.nb.make_slug(each_vlgrp.get("slug", each_vlgrp["name"])),
             site=dict(name=site),
             description=each_vlgrp.get("descr", ""),
+            tags=self.nb.get_or_create_tag(each_vlgrp.get("tags")),
         )
 
     # 4e. VLAN: Creates VLANs and associate to the vl_grp, tenant, site and role. The VL_GRP and role keep them unique
@@ -319,7 +322,10 @@ class Ipam:
             vid=each_vl["id"],
             name=each_vl["name"],
             role=dict(name=role),
-            tenant=dict(name=each_vl.get("tenant", vl_grp_tnt)),
+            tenant=self.nb.name_none(
+                vl_grp_tnt, dict(name=each_vl.get("tenant", vl_grp_tnt))
+            ),
+            # tenant=dict(name=each_vl.get("tenant", vl_grp_tnt)),
             group=dict(name=each_vlgrp["name"]),
             description=each_vl.get("descr", ""),
             tags=self.nb.get_or_create_tag(each_vl.get("tags")),
@@ -331,13 +337,13 @@ class Ipam:
             name=each_vrf["name"],
             description=each_vrf.get("descr", ""),
             enforce_unique=each_vrf.get("unique", True),
-            tenant=dict(name=vrf_tnt),
+            tenant=self.nb.name_none(vrf_tnt, dict(name=vrf_tnt)),
             tags=self.nb.get_or_create_tag(each_vrf.get("tags")),
-            import_targets=self.get_or_create_rt(
+            import_targets=self.nb.get_or_create_rt(
                 each_vrf.get("import_rt"),
                 vrf_tnt,
             ),
-            export_targets=self.get_or_create_rt(
+            export_targets=self.nb.get_or_create_rt(
                 each_vrf.get("export_rt"),
                 vrf_tnt,
             ),
@@ -363,7 +369,9 @@ class Ipam:
             vrf=dict(name=vrf),
             description=each_pfx.get("descr", ""),
             site=dict(name=site),
-            tenant=dict(name=each_pfx.get("tenant", vrf_tnt)),
+            tenant=self.nb.name_none(
+                vrf_tnt, dict(name=each_pfx.get("tenant", vrf_tnt))
+            ),
             tags=self.nb.get_or_create_tag(each_pfx.get("tags")),
         )
         if vlgrp != None:
@@ -378,15 +386,15 @@ class Ipam:
         for each_rir in self.ipam_rir:
             self.rir.append(self.cr_rir(each_rir))
             # 4b. AGGR: Create Aggregate dictionary
-            if each_rir.get("ranges") != None:
-                for each_aggr in each_rir["ranges"]:
+            if each_rir.get("aggregate") != None:
+                for each_aggr in each_rir["aggregate"]:
                     self.aggr.append(self.cr_aggr(each_rir, each_aggr))
         # 4c. ROLE: Create Role dictionary
         for each_role in self.pfx_vlan_role:
             self.role.append(self.cr_role(each_role))
             # Loops through sites to create vlans and prefixes
             for each_site in each_role["site"]:
-                tnt = self.get_tnt(each_site["name"])
+                tnt = self.nb.get_tnt(each_site["name"])
                 # 4d. VL_GRP: Creates per-site VLAN Group Dictionary
                 if each_site.get("vlan_grp") != None:
                     for each_vlgrp in each_site["vlan_grp"]:

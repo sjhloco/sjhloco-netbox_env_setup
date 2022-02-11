@@ -1,3 +1,4 @@
+from multiprocessing.connection import Listener
 from typing import Any, Dict, List
 import pynetbox
 from pynetbox.core.query import RequestError
@@ -10,17 +11,31 @@ from collections import defaultdict
 
 
 # Used by all object creations so have to be created outside of classes and outside main() or is missing for pytest
-global tag_exists, tag_created, rt_exists, rt_created
-tag_exists, tag_created, rt_exists, rt_created = ([] for i in range(4))
+# global tag_exists, tag_created
+# global rt_exists, rt_created
+# tag_exists, tag_created = ([] for i in range(2))
+# rt_exists, rt_created = ([] for i in range(2))
 
 # ----------------------------------------------------------------------------
 # INZT_LOAD: Opens netbox connection and loads the variable file
 # ----------------------------------------------------------------------------
 class Nbox:
-    def __init__(self, netbox_url: str, token: str):
+    def __init__(
+        self,
+        netbox_url: str,
+        token: str,
+        tag_exists: List,
+        tag_created: List,
+        rt_exists: List,
+        rt_created: List,
+    ):
         self.nb = pynetbox.api(url=netbox_url, token=token)
         my_theme = {"repr.ipv4": "none", "repr.number": "none", "repr.call": "none"}
         self.rc = Console(theme=Theme(my_theme))
+        self.tag_exists = tag_exists
+        self.tag_created = tag_created
+        self.rt_exists = rt_exists
+        self.rt_created = rt_created
 
     # ----------------------------------------------------------------------------
     # OBJ_CHECK: API call to check if objects already exists in Netbox (e.g. Tenants, tenancy.tenants, tnt, name)
@@ -46,7 +61,6 @@ class Nbox:
                     )
                 else:
                     obj_exist_name.append(each_obj_dm[obj_fltr])
-
         return dict(notexist_dm=obj_notexist_dm, exist_name=obj_exist_name)
 
     # ----------------------------------------------------------------------------
@@ -365,9 +379,9 @@ class Nbox:
                     tag = self.nb.extras.tags.create(
                         dict(name=name, slug=self.make_slug(name), color=colour)
                     )
-                    tag_created.append(name)
+                    self.tag_created.append(name)
                 else:
-                    tag_exists.append(name)
+                    self.tag_exists.append(name)
                 tags.append(tag.id)
         return tags
 
@@ -380,11 +394,15 @@ class Nbox:
             for name, descr in rt.items():
                 rt = self.nb.ipam.route_targets.get(name=name)
                 if not rt:
-                    fltr = {"name": name, "description": descr, "tenant": {"name": tnt}}
+                    fltr = {
+                        "name": name,
+                        "description": descr,
+                        "tenant": self.name_none(tnt, {"name": tnt}),
+                    }
                     rt = self.nb.ipam.route_targets.create(**fltr)
-                    rt_created.append(name)
+                    self.rt_created.append(name)
                 else:
-                    rt_exists.append(name)
+                    self.rt_exists.append(name)
 
                 all_rt.append(rt.id)
         return all_rt
@@ -412,3 +430,10 @@ class Nbox:
             return dict(self.nb.dcim.sites.get(name=site))["tenant"]["name"]
         except:
             return None
+
+    # NAME_NONE: Removes name from netbox filter if its value is None
+    def name_none(self, name_value: str, full_key_value: Dict) -> str:
+        if name_value == None:
+            return name_value
+        else:
+            return full_key_value

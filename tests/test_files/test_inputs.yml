@@ -56,7 +56,7 @@ rir:
   - name: RFC1918
     descr:  RFC 1918 Private address ranges
     is_private: True
-    ranges:
+    aggregate:
     - {prefix: 10.0.0.0/8, descr: Class A private address range}
 
 # ----------------------------------------------------------------------------

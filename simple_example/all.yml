@@ -17,8 +17,8 @@ tenant:
       slug: dc0_fl1
       # RACK: Racks can be designated a role to define its purpose
       rack:
-      - {name: DC1-FL1-A1, role: patching}
-      - {name: DC1_FL1_B1, role: network}
+      - {name: DC0-FL1-A1, role: patching}
+      - {name: DC0_FL1_B1, role: network}
   - name: aws
     descr: AWS cloud environment
     addr: Europe, London
@@ -60,69 +60,77 @@ device_role:
   - {name: firewall, color: f44336, descr: L3-7 edge and internal firewalls}
   - {name: switch, color: 2196f3,  descr: L2 and L3 switches}
 
-# ########################################## IPAM ##########################################
-# # RIR: Each governing body (including RFC1918) and your public address ranges (aggregates) assigned by them
-# rir:
-#   - name: AfriNIC
-#     descr: African region
-#   - name: APNIC
-#     descr: Asia Pacific region
-#   - name: ARIN
-#     descr: North America and several Caribbean and North Atlantic islands
-#   - name: LAACNIC
-#     descr: Latin America and the Caribbean
-#   - name: RIPE_NCC
-#     descr: Europe, the Middle East, and parts of Central Asia
-#   - name: RFC1918
-#     descr:  RFC 1918 Private address ranges
-#     is_private: True
-#     ranges:
-#     - {prefix: 10.0.0.0/8, descr: Class A private address range}
-#     - {prefix: 172.16.0.0/12, descr: Class B private address range}
-#     - {prefix: 192.168.0.0/16, descr: Class C private address range}
+# ----------------------------------------------------------------------------
+# IPAM: RIR, Aggregates, Prefix/VLAN roles, VLAN-groups, VLANs, VRFs, Prefixes
+# ----------------------------------------------------------------------------
+# RIR: Each governing body (including RFC1918) and your public address ranges (aggregates) assigned by them
+rir:
+  - name: AfriNIC
+    descr: African region
+  - name: APNIC
+    descr: Asia Pacific region
+  - name: ARIN
+    descr: North America and several Caribbean and North Atlantic islands
+  - name: LAACNIC
+    descr: Latin America and the Caribbean
+  - name: RIPE_NCC
+    descr: Europe, the Middle East, and parts of Central Asia
+  - name: RFC1918
+    descr:  RFC 1918 Private address ranges
+    is_private: True
+    # AGGR: List of aggregates, prefix is mandatory, descr and tags optional
+    aggregate:
+    - {prefix: 10.0.0.0/8, descr: Class A private address range}
+    - {prefix: 172.16.0.0/12, descr: Class B private address range}
+    - {prefix: 192.168.0.0/16, descr: Class C private address range}
 
+# IPAM: Roles provide segregation of networks (i.e prod, npe) holding VLANs and prefixes. By default VLANs within a group or prefixes in a VRF must be unique
+role:
+- name: EvilCorp
+  descr: DC and Cloud
+  # SITE: The site that all the Vlans, VRFs and prefixes created are associated to (created within)
+  site:
+  - name: DC0
+    # VL_GRP: Within the VLAN Groups each VLAN must be a unique ID and name (scoped to a site)
+    vlan_grp:
+    - name: DC0_VLANs
+      # VLAN: List of VLANs in the VLAN group
+      vlan:
+      - name: DC0_INET_VL99
+        id: 99
+        descr: Transit to Internet
+      - name: DC0_MGMT_VL10
+        id: 10
+        descr: Management and iLO
+      - name: DC0_COMPUTE_VL20
+        id: 20
+        descr: Servers and storage
+      # VL_VRFS: VRFs whose prefixes are linked to the VLANs (SVIs) within the VLAN group
+      vrf:
+      - name: DC0_RED
+        descr: DMZ and INET
+        prefix:
+        - pfx: 192.168.1.0/24
+          vl: 99
+      - name: DC0_BLU
+        descr: Production Network
+        rd: '65102:1'
+        role: stesworld
+        prefix:
+        - pfx: 10.10.10.0/24
+          vl: 10
+        - pfx: 10.10.20.0/24
+          vl: 20
+  # NON-VL_VRF: List of VRFs whose prefixes aren't associated to VLANs (for example Azure or AWS)
+  - name: aws
+    vrf:
+    - name: AWS_NT_VNET1
+      prefix:
+      - pfx: 10.20.10.0/24
+        descr: NT-vnet1-mgmt
+      - pfx: 10.20.20.0/24
+        descr: NT-vnet1-data
 
-# # IPAM: Roles provide segregation of networks (i.e prod, npe) holding VLANs and prefixes. By default VLANs within a group or prefixes in a VRF must be unique
-# role:
-# - name: EvilCorp
-#   descr: DC and Cloud
-#   site:
-#   - name: DC1
-#     vlan_grp:
-#     - name: DC1_VLANs
-#       vlan:
-#       - name: DC1_INET_VL99
-#         id: 99
-#         descr: Transit to Internet
-#       - name: DC1_MGMT_VL10
-#         id: 10
-#         descr: Management and iLO
-#       - name: DC1_COMPUTE_VL20
-#         id: 20
-#         descr: Servers and storage
-#       vrf:
-#       - name: DC1_RED
-#         descr: DMZ and INET
-#         prefix:
-#         - pfx: 192.168.1.0/24
-#           vl: 99
-#       - name: DC1_BLU
-#         descr: Production Network
-#         rd: '65102:1'
-#         role: stesworld
-#         prefix:
-#         - pfx: 10.10.10.0/24
-#           vl: 10
-#         - pfx: 10.10.20.0/24
-#           vl: 20
-#   - name: aws
-#     vrf:
-#     - name: AWS_NT_VNET1
-#       prefix:
-#       - pfx: 10.20.10.0/24
-#         descr: NT-vnet1-mgmt
-#       - pfx: 10.20.20.0/24
-#         descr: NT-vnet1-data
 
 # ########################################## Circuits ##########################################
 # ## CIRCUIT TYPE: Different types that can be associated to circuits. Only name is mandatory, slug and descr are optional
@@ -155,8 +163,8 @@ device_role:
 #       comment: test comments
 #   - name: vSphere
 #     cluster:
-#     - name: ESX DC1
-#       site: DC1
+#     - name: ESX DC0
+#       site: DC0
 
 
 

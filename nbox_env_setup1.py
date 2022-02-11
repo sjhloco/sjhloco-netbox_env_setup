@@ -33,7 +33,7 @@ from pprint import pprint
 from netbox import Nbox
 from dm import Organisation
 from dm import Devices
-
+from dm import Ipam
 
 # ----------------------------------------------------------------------------
 # Variables to change dependant on environment
@@ -169,7 +169,9 @@ def main():
     arg_vars = Inputs()
     args, input_dir = arg_vars.arg_parser()
     my_vars = arg_vars.input_val(input_dir, args)
-    nbox = Nbox(netbox_url, token)
+
+    tag_exists, tag_created, rt_exists, rt_created = ([] for i in range(4))
+    nbox = Nbox(netbox_url, token, tag_exists, tag_created, rt_exists, rt_created)
 
     # 2. ORG_TNT_SITE_RACK: Create all the organisation objects
     if args["organisation"] == True:
@@ -195,30 +197,31 @@ def main():
         nbox.engine("Platform", "dcim.platforms", "name", dvc_dict["pltm"])
         nbox.engine("Device-type", "dcim.device_types", "model", dvc_dict["dev_type"])
 
-    # 3. IPAM_VRF_VLAN: Create all the IPAM objects
-    # ipam = Ipam(nbox, my_vars["rir"], my_vars["role"])
-    # ipam_dict = ipam.create_ipam()
+    # 4. IPAM_VRF_VLAN: Create all the IPAM objects
+    if args["ipam"] == True:
+        ipam = Ipam(nbox, my_vars["rir"], my_vars["role"])
+        ipam_dict = ipam.create_ipam()
 
-    # # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
-    # nbox.engine("RIRs", "ipam.rirs", "name", ipam_dict["rir"])
-    # nbox.engine("Aggregates", "ipam.aggregates", "prefix", ipam_dict["aggr"])
-    # nbox.engine("Prefix/VLAN Role", "ipam.roles", "name", ipam_dict["role"])
-    # nbox.engine("VLAN Group", "ipam.vlan-groups", "name", ipam_dict["vlan_grp"])
-    # nbox.engine("VRF", "ipam.vrfs", "name", ipam_dict["vrf"])
-    # nbox.print_tag_rt("Route-Targets", set(rt_exists), rt_created)
-    # # First check if VL/PFX exist in VL_GRP/VRF, then if exist in ROLE.
-    # nbox.engine(
-    #     "VLAN",
-    #     ["ipam.vlans", "ipam.vlan_groups"],
-    #     ["name", "group_id"],
-    #     ipam_dict["vlan"],
-    # )
-    # nbox.engine(
-    #     "Prefix",
-    #     ["ipam.prefixes", "ipam.vrfs"],
-    #     ["prefix", "vrf_name"],
-    #     ipam_dict["prefix"],
-    # )
+        # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
+        nbox.engine("RIRs", "ipam.rirs", "name", ipam_dict["rir"])
+        nbox.engine("Aggregates", "ipam.aggregates", "prefix", ipam_dict["aggr"])
+        nbox.engine("Prefix/VLAN Role", "ipam.roles", "name", ipam_dict["role"])
+        nbox.engine("VLAN Group", "ipam.vlan-groups", "name", ipam_dict["vlan_grp"])
+        nbox.engine("VRF", "ipam.vrfs", "name", ipam_dict["vrf"])
+        nbox.print_tag_rt("Route-Targets", set(rt_exists), rt_created)
+        # First check if VL/PFX exist in VL_GRP/VRF, then if exist in ROLE.
+        nbox.engine(
+            "VLAN",
+            ["ipam.vlans", "ipam.vlan_groups"],
+            ["name", "group_id"],
+            ipam_dict["vlan"],
+        )
+        nbox.engine(
+            "Prefix",
+            ["ipam.prefixes", "ipam.vrfs"],
+            ["prefix", "vrf_name"],
+            ipam_dict["prefix"],
+        )
 
     # # 4. CRT_PVDR: Create all the Circuit objects
     # crt = Circuits(nbox, my_vars["circuit_type"], my_vars["provider"])
@@ -256,7 +259,7 @@ def main():
     # )
 
     # 7 Prints any tags that have been created for any of the sections:
-    # nbox.print_tag_rt("Tags", set(tag_exists), tag_created)
+    nbox.print_tag_rt("Tags", set(tag_exists), tag_created)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,82 @@
+# This example shows all the options that are possible to be defined. Mandatory dictionaries must be defined and Optional are at your discretion
+
+# ----------------------------------------------------------------------------
+# IPAM: RIR, Aggregates, Prefix/VLAN roles, VLAN-groups, VLANs, VRFs, Prefixes
+# ----------------------------------------------------------------------------
+# RIR: Each governing body (including RFC1918) and your public address ranges (aggregates) assigned by them
+rir:                                  # Mandatory - List of all the governing bodies
+  - name: AfriNIC                     # Mandatory - Name of the governing body
+    descr: African region             # Optional
+    slug: afrinic
+    tags: {afrinic: c0c0c0}           # Optional - Dictionary of {name: colour}, can have multiple tags
+  - name: APNIC
+    descr: Asia Pacific region
+  - name: ARIN
+    descr: North America and several Caribbean and North Atlantic islands
+  - name: LAACNIC
+    descr: Latin America and the Caribbean
+  - name: RIPE_NCC
+    descr: Europe, the Middle East, and parts of Central Asia
+    # AGGR: List of aggregates, prefix is mandatory, descr and tags optional
+    aggregate:                        # Optional
+    - {prefix: 81.142.123.168/29, descr: BT Ranges at DC1, tags: {bt: 9e9e9e}}
+  - name: RFC1918                     # Mandatory - Name of the governing body
+    descr:  RFC 1918 Private address ranges
+    is_private: True                  # Optional - Defines that all aggregates in the RIR are private ranges
+    aggregate:
+    - {prefix: 10.0.0.0/8, descr: Class A private address range}
+    - {prefix: 172.16.0.0/12, descr: Class B private address range}
+    - {prefix: 192.168.0.0/16, descr: Class C private address range}
+
+# IPAM: Roles provide segregation of networks (i.e prod, npe) holding VLANs and prefixes. By default VLANs within a group or prefixes in a VRF must be unique
+role:                               # Mandatory - List of roles
+- name: example_prod                # Mandatory - Name of the role
+  descr: Production network         # Optional
+  slug: prod                        # Optional
+  tags: {prod: 9e9e9e}              # Optional - Dictionary of {name: colour}, can have multiple tags
+  site:                             # Mandatory
+  # SITE: The site that all the Vlans, VRFs and prefixes created are associated to (created within)
+  - name: site1                     # Mandatory - Name of the site (must already exist)
+    # VL_GRP: Within the VLAN Groups each VLAN must be a unique ID and name (scoped to a site)
+    vlan_grp:                       # Optional - List of VLAN groups
+    - name: site1 vl group          # Mandatory - Name of the VLAN group
+      slug: site1_vl_grp            # Optional
+      descr: site1 vlan group       # Optional
+      tenant: tenant1               # Optional - The tenant for all VLANs, by default uses site tenant
+      tags: {site1_vl_grp: 9e9e9e}  # Optional - Dictionary of {name: colour}, can have multiple tags
+      # VLAN: List of VLANs in the VLAN group
+      vlan:                         # Mandatory - List of VLANs in the VLAN group
+      - name: DATA_VL10             # Mandatory - Name of the role
+        id: 10                      # Mandatory - VLAN number
+        descr: NAS and servers      # Optional
+        tenant: tenant2             # Optional - Tenant for this VLAN, overrides tenant set in VLAN group or the site tenant
+        tags: {nas: 9e9e9e}         # Optional - Dictionary of {name: colour}, can have multiple tags
+      # VRFS: VRFs whose prefixes are linked to the VLANs (SVIs) within the VLAN group
+      vrf:                          # Optional - List of VRFs
+      - name: GLOBAL                # Mandatory - Name of the VRF
+        rd: '65101:1'               # Optional - RD of the VRF, must be in quotes (' ')
+        import_rt: {'65101:1': test}            # Optional - Import RT value (RFC 4360), if using ASN must be in quotes (' '). Change to dict if want description {rt: descr}
+        export_rt: ['65101:1', 192.168.1.1:2]   # Optional - Export RT value (RFC 4360), if using ASN must be in quotes (' ')
+        descr: Global VRF           # Optional
+        # unique: False             # Optional - By default all prefixes in VRF must be unique, unhash to disable this
+        tenant: tenant1             # Optional - The tenant for all prefixes, by default uses site tenant
+        tags: {global_vrf: 9e9e9e}  # Optional - Dictionary of {name: colour}, can have multiple tags
+        # PFX: List of prefixes within this VRF
+        prefix:                     # Mandatory
+        - pfx: 10.10.10.0/24        # Mandatory - Prefix in the format x.x.x.x/x
+          vl: 10                    # Optional - The VLAN that this prefix is associated to
+          descr: Data VLAN          # Optional
+          # pool: True              # Optional - By default pool is false, set to true if is a NAT range (network and broadcast are usable)
+          tenant: tenant2           # Optional - Tenant for this Prefix, overrides tenant set in VRF or the site tenant
+          tags: {data_vrf: 9e9e9e}  # Optional - Dictionary of {name: colour}, can have multiple tags
+    # NON-VL_VRF: List of VRFs whose prefixes aren't associated to VLANs (for example Azure or AWS)
+    # vrf:                            # Optional
+    # - name: AZU_NT_VNET1
+    #   import_rt: {'65101:1': test}
+    #   export_rt: ['65101:1', 192.168.1.1:2]
+    #   prefix:
+    #   - pfx: 10.20.10.0/24
+    #     descr: NT-vnet1-mgmt
+
+
+

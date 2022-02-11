@@ -3,7 +3,7 @@
 This script is designed to create all the objects within the NetBox environment ready for adding devices. It does not add the devices themselves. Its purpose to add objects rather than edit or delete existing objects. It is not idempotent.\
 The Netbox environment is defined in YAML files that follows the hierarchical structure of the NetBox menus. The script is formatted to follow this same structure allowing sub-sections of the environment to be created or additions to be made to an existing section.
 
-### API Engine
+## API Engine
 
 From the YAML input files per-object *Data-Models* are created that are fed into the API engine to create any objects that do not already exist.
 
@@ -11,7 +11,7 @@ From the YAML input files per-object *Data-Models* are created that are fed into
 
 The *engine* method calls *obj_check* to verify whether an object already exists and uses *obj_create* (API engine) to create the NetBox objects and handle errors.
 
-### Data Models
+## Data Models
 
 Each NetBox menu is represented by a separate data-model class (from *dm.py*) which are instantiated using dictionaries from the input YAML file to create a list of dictionaries for each of objects under that NetBox menu. These dictionaries are passed through the *nbox.engine* class (from *netbox.py*) that hold all the methods that interface with NetBox to check object existence and perform object creation.
 
@@ -29,7 +29,7 @@ nbox.engine("Location (child)", "dcim.locations", "slug", org_dict["chld_loc"])
 nbox.engine("Rack", "dcim.racks", "name", org_dict["rack"])
 ```
 
-### Input file
+## Input file
 
 The input data can be defined in the one file or split over multiple files of any name (script loads all files in a directory). Because of the hierarchical structure of the YAML file the mandatory dictionary elements will still be required in the file even if those objects are not being created by this script. For example, to create a rack the YAML file needs the tenant, site and location. Are two examples setups to show the struture.
 
@@ -38,7 +38,7 @@ The input data can be defined in the one file or split over multiple files of an
 
 Slug is optional, if not defined it is automatically generated from the name with any whitespaces replaced with _.
 
-#### Organisation - *Tenants, Sites, Locations, Racks, Rack-roles*
+### Organisation - *Tenants, Sites, Locations, Racks, Rack-roles*
 
 Tenants are top of the tree with optional sites that contain locations (and child locations) that in turn contain racks.
 
@@ -54,7 +54,7 @@ Tenants are top of the tree with optional sites that contain locations (and chil
 
 Be careful with child locations as if you are using a generic name such as *Room1* although is nested under the parent location in GUI need to make sure you define a unique slug.
 
-#### Devices - *Manufacturers, Platforms, Device-types, Device-roles*
+### Devices - *Manufacturers, Platforms, Device-types, Device-roles*
 
 The device-types are built from pre-defined YAML files that can be downloaded from the NetBox community or custom created using that same format. By default these are expected to be in the *device_type* directory, *dvc_type_dir* can be used to change the location.
 *https://github.com/netbox-community/devicetype-library*
@@ -66,38 +66,46 @@ The device-types are built from pre-defined YAML files that can be downloaded fr
 | manufacturer.device_type | List of device-types (yaml files) | n/a | n/a |
 | device_role | List of device roles | name, color | vm_role, slug, descr, tags |
 
-#### IPAM - *RIR, Aggregates, Prefix/VLAN roles, VLAN-groups, VLANs, VRFs, Prefixes*
+### IPAM - *RIR, Aggregates, Prefix/VLAN roles, VLAN-groups, VLANs, VRFs, Prefixes*
+
 Prefix/VLAN roles group the VLANs and prefixes together to define environments. They are top of the IPAM hierarchy in the YAML file.\
 VLAN-groups, VLANs, VRFs and prefixes are in some way related to sites and tenants. Tenants can be assigned in a hierarchical manner.\
-Tags can be set in multiple places for VLANs, VRFs and prefixes with differing variants of inheritance.\
 VRFs and prefixes are either defined under the role (non-VLAN environments like clouds) or the VLAN-group (if prefixes associated to VLANs).\
 
+| Object   | Description          | Mandatory | Optional |
+| -------- | -------------------- | --------- | ---------|
+| rir      | List of governing bodies (includes RFC1918) | name | is_private, slug, descr, tags, ***aggregate*** |
+| rir.aggregate | List of aggregates in the RIR | prefix | descr, tags |
+| role |  List of prefix and VLAN roles | name, ***site***  |  slug, descr, tags |
+| role.site | List of existing sites to associate Vlans, VRFs and prefixes | name | ***vlan_grp***
+| role.site.vlan_grp | List of VLAN groups | name, ***vlan*** | slug, descr, tags, tenant, ***vrf***
+| role.site.vlan_grp.vlan | List of VLANs in the VLAN group| name, id | descr, tags, tenant
+| role.site.vlan_grp.vrf | VRFs whose prefixes are linked to the VLANs (SVIs) | name, ***prefix*** | descr, tags, rd, import_rt, export_rt, unique, tenant
+| role.site.vlan_grp.vrf.prefix | List of prefixes within this VRF | pfx | descr, tags, vl, pool, tenant
+| role.site.vrf | VRFs whose prefixes arent associated to VLANs | name, ***prefix*** | descr, tags, rd, import_rt, export_rt, unique, tenant
+| role.site.vrf.prefix | List of prefixes within this VRF | pfx | descr, tags, pool, tenant
 
+### Provider -  *Circuit-type, Provider, Circuit*
 
-
-
-
-**Provider:** *Circuit-type, Provider, Circuit*\
 Providers are the ISPs that hold individual circuits with pre-defined circuit-types
 
-```css
-crt = nbox.create_crt()
-# Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
-nbox.obj_check('Circuit Type', 'circuits.circuit-types', 'name', crt['crt_type'])
-nbox.obj_check('Provider', 'circuits.providers', 'name', crt['pvdr'])
-nbox.obj_check('Circuit', 'circuits.circuits', 'cid', crt['crt'])
-```
+| Object   | Description          | Mandatory | Optional |
+| -------- | -------------------- | --------- | ---------|
 
-**Virtual:** *Cluster-group, Cluster-type, Cluster*\
+### Virtual = *Cluster-group, Cluster-type, Cluster*
+
 Clusters are groupings of resources which VMs run within. Cluster-groups and types allow further grouping of clusters based on things such as location or technology.\
 Site, tenant, cluster-group and tags can be set globally for all members of a cluster-type or be overridden on a per-cluster basis.
 
-```css
-vrt = nbox.create_vrt()
-nbox.obj_check('Cluster Type', 'virtualization.cluster-types', 'name', vrt['cltr_type'])
-nbox.obj_check('Cluster Group', 'virtualization.cluster-groups', 'name', vrt['cltr_grp'])
-nbox.obj_check('Cluster', 'virtualization.clusters', 'name', vrt['cltr'])
-```
+| Object   | Description          | Mandatory | Optional |
+| -------- | -------------------- | --------- | ---------|
+
+### Contacts -
+
+
+| Object   | Description          | Mandatory | Optional |
+| -------- | -------------------- | --------- | ---------|
+
 
 ## Installation and Prerequisites
 
