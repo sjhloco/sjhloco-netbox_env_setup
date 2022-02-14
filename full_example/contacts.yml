@@ -3,7 +3,7 @@
 # ----------------------------------------------------------------------------
 # CONTACT: Contact-role, Contact Group, Contact Assignment
 # ----------------------------------------------------------------------------
-# CNT_ROLE: At contact assignment a contact can optionally be assigned a role. Name is mandatory, slug, descr and tags optional
+# CNT_ROLE: At contact assignment a contact can be assigned a role. Name is mandatory, slug, descr and tags optional
 contact_role:
   - {name: operational, slug: operational, descr: Day to day operations, tags: {opp: 9e9e9e}}
   - {name: emergency, descr: emergency contacts}
@@ -12,6 +12,7 @@ contact_role:
 contact_group:                          # Mandatory - List of contact groups
   - name: FG facilities                 # Mandatory - Name of the group
     descr: emergency contacts           # Optional
+    tags: {cnt_grp_tag: 9e9e9e}         # Optional
     slug: fg_fac                        # Optional
     # CNT: Each contact is a member of a group (can only be a member of one group)
     contact:                            # Optional
