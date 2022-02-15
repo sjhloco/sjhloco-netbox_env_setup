@@ -32,8 +32,8 @@ nbox.engine("Rack", "dcim.racks", "name", org_dict["rack"])
 
 The input data can be defined in the one file or split over multiple files of any name (script loads all files in a directory). Because of the hierarchical structure of the YAML file the mandatory dictionary elements will still be required in the file even if those objects are not being created by this script. For example, to create a rack the YAML file needs the tenant, site and location. The structure can be found in the two example setups within the repo.
 
-**full_example:** An example setup with all the available options defined\
-**simple_example:** A more streamlined example with just the bare minimum options defined
+**full_example:** *An example setup with all the available options defined*\
+**simple_example:** *A more streamlined example with just the bare minimum options defined*
 
 For most options the slug is optional and if not defined will be automatically generated from the name replacing any whitespaces with _.
 
