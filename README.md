@@ -1,7 +1,6 @@
 # NetBox Baseline Environment
 
-This script will create all the objects within the NetBox environment ready for the adding of devices, it does not add the devices themselves. It is not idempotent as the purpose is to add objects rather than edit or delete existing objects.\
-The Netbox environment is defined in YAML files that follow the hierarchical structure of the NetBox menus. The script follows this same structure allowing sub-sections of the environment to be created or additions to be made to an existing section.
+This script will create all the objects within the NetBox environment ready for the addition of devices, it does not add the devices themselves. It is not idempotent as the purpose is to add objects rather than edit or delete existing objects. The Netbox environment is defined in YAML files that follow the hierarchical structure of the NetBox menus. The script follows this same structure allowing sub-sections of the environment to be created or additions to be made to an existing section.
 
 ## API Engine
 
