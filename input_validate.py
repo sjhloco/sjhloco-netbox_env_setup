@@ -153,11 +153,12 @@ def assert_regex_match(msg, obj_to_chk, regex, prnt_name, errors):
 
 # IN: Asserts that the variable is within the specified value
 def assert_in(msg, input_value, in_obj, from_obj, errors):
+    # print(msg)
+    # print(input_value)
+    # print(in_obj)
     if input_value != None:
         obj_type = msg.split(".")[-1].capitalize()
-        err_msg = (
-            f"-{msg}: {obj_type} '{input_value}' of '{from_obj}' does not exist"
-        )
+        err_msg = f"-{msg}: {obj_type} '{input_value}' of '{from_obj}' does not exist"
         try:
             assert input_value in in_obj, err_msg
         except AssertionError as e:
@@ -176,9 +177,7 @@ def assert_equal(errors, variable, input_value, error_message):
 def assert_ipv4(msg, obj, errors):
     obj_type = msg.split(".")[-1].capitalize()
     obj_to_chk = obj[msg.split(".")[-1]]
-    err_msg = (
-        f"-{msg}: {obj_type} '{obj_to_chk}' is not a valid IPv4 Address/Netmask"
-    )
+    err_msg = f"-{msg}: {obj_type} '{obj_to_chk}' is not a valid IPv4 Address/Netmask"
     try:
         ipaddress.IPv4Interface(obj_to_chk)
     except ipaddress.AddressValueError:
@@ -191,7 +190,9 @@ def assert_ipv4(msg, obj, errors):
 def duplicate_in_list(input_list, args, errors, end_msg):
     # Args is a list of 0 to 4 args to use in error message before dup error
     dup = [i for i in set(input_list) if input_list.count(i) > 1]
-    err_msg = "-{}: There are duplicate {} with the same {} '{}', all should be unique {}"
+    err_msg = (
+        "-{}: There are duplicate {} with the same {} '{}', all should be unique {}"
+    )
     assert_equal(errors, len(dup), 0, err_msg.format(*args, ", ".join(dup), end_msg))
 
 
@@ -355,9 +356,7 @@ class Organisation:
         all_rr = []
         if self.rr != None:
             try:
-                assert isinstance(
-                    self.rr, list
-                ), "-rack_role: Rack-role must be a list"
+                assert isinstance(self.rr, list), "-rack_role: Rack-role must be a list"
                 for each_rr in self.rr:
                     if each_rr.get("name") != None:
                         assert_dict("rack_role.tags", each_rr, self.org_errors)
@@ -619,10 +618,10 @@ class Ipam:
                 assert isinstance(
                     each_role["site"], list
                 ), f"-role.site: Site within role '{each_role['name']}' must be a list of sites"
+
                 for each_site in each_role["site"]:
                     all_vl_grp, all_vrf = ([] for i in range(2))
                     # SITE_EXIST: Assert that the specified site of the role exists (is in organisation dictionary)
-                    # breakpoint()
                     assert_in(
                         "role.site",
                         each_site.get("name"),
@@ -690,14 +689,14 @@ class Ipam:
                                             self.ipam_errors.append(
                                                 f"-role.site.vlan_grp.vlan.name: A VLAN within VLAN-group '{each_vl_grp['name']}' has no name, this is a mandatory dictionary"
                                             )
-                                            # VRF_PREFIX: Asserts VRF and Prefix variables exist for VRFs under the VLAN Group (prefixes associated to VLANs like physical site)
-                                            assert_vrf_pfx(
-                                                each_vl_grp,
-                                                "role.site.vlan_grp.vrf",
-                                                all_vrf,
-                                                all_vl_numb,
-                                                self.ipam_errors,
-                                            )
+                                    # VRF_PREFIX: Asserts VRF and Prefix variables exist for VRFs under the VLAN Group (prefixes associated to VLANs like physical site)
+                                    assert_vrf_pfx(
+                                        each_vl_grp,
+                                        "role.site.vlan_grp.vrf",
+                                        all_vrf,
+                                        all_vl_numb,
+                                        self.ipam_errors,
+                                    )
                                 # VLAN_GRP_NAME: Every VLAN Group must have a name
                                 elif each_vl_grp.get("name") == None:
                                     self.ipam_errors.append(
