@@ -145,7 +145,7 @@ token = config.api_token
 os.environ['REQUESTS_CA_BUNDLE'] = '/Users/user1/Documents/nbox_py_scripts/myCA.pem'
 ```
 
-The token is set in a separate `config.py` variable file that I *.gitignore* so as not to share the token with the rest of the world. This is imported with 'import config' so if you want to input the token directly in the script remove this line. All that *config.py* holds is a single token variable:
+The token is set in a separate `config.py` variable file that I *.gitignore* so as not to share the token with the rest of the world. This is imported with `import config` so you either need to add this file or if you want to input the token directly in the script remove the import line. All that *config.py* holds is a single token variable:
 
 ```bash
 token = 'my_token_got_from_netbox'

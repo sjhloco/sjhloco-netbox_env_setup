@@ -1,0 +1,226 @@
+# The configurations that used for the recording, feel free to edit them
+config:
+
+  # Specify a command to be executed
+  # like `/bin/bash -l`, `ls`, or any other commands
+  # the default is bash for Linux
+  # or powershell.exe for Windows
+  command: bash -l
+
+  # Specify the current working directory path
+  # the default is the current working directory path
+  cwd: /Users/mucholoco/netbox_env_setup
+
+  # Export additional ENV variables
+  env:
+    recording: true
+
+  # Explicitly set the number of columns
+  # or use `auto` to take the current
+  # number of columns of your shell
+  cols: 105
+
+  # Explicitly set the number of rows
+  # or use `auto` to take the current
+  # number of rows of your shell
+  rows: 31
+
+  # Amount of times to repeat GIF
+  # If value is -1, play once
+  # If value is 0, loop indefinitely
+  # If value is a positive number, loop n times
+  repeat: 0
+
+  # Quality
+  # 1 - 100
+  quality: 10
+
+  # Delay between frames in ms
+  # If the value is `auto` use the actual recording delays
+  frameDelay: auto
+
+  # Maximum delay between frames in ms
+  # Ignored if the `frameDelay` isn't set to `auto`
+  # Set to `auto` to prevent limiting the max idle time
+  maxIdleTime: 2000
+
+  # The surrounding frame box
+  # The `type` can be null, window, floating, or solid`
+  # To hide the title use the value null
+  # Don't forget to add a backgroundColor style with a null as type
+  frameBox:
+    type: floating
+    title: Terminalizer
+    style:
+      border: 0px black solid
+      # boxShadow: none
+      # margin: 0px
+
+  # Add a watermark image to the rendered gif
+  # You need to specify an absolute path for
+  # the image on your machine or a URL, and you can also
+  # add your own CSS styles
+  watermark:
+    imagePath: null
+    style:
+      position: absolute
+      right: 15px
+      bottom: 15px
+      width: 100px
+      opacity: 0.9
+
+  # Cursor style can be one of
+  # `block`, `underline`, or `bar`
+  cursorStyle: block
+
+  # Font family
+  # You can use any font that is installed on your machine
+  # in CSS-like syntax
+  fontFamily: "Monaco, Lucida Console, Ubuntu Mono, Monospace"
+
+  # The size of the font
+  fontSize: 12
+
+  # The height of lines
+  lineHeight: 1
+
+  # The spacing between letters
+  letterSpacing: 0
+
+  # Theme
+  theme:
+    background: "transparent"
+    foreground: "#afafaf"
+    cursor: "#c7c7c7"
+    black: "#232628"
+    red: "#fc4384"
+    green: "#b3e33b"
+    yellow: "#ffa727"
+    blue: "#75dff2"
+    magenta: "#ae89fe"
+    cyan: "#708387"
+    white: "#d5d5d0"
+    brightBlack: "#626566"
+    brightRed: "#ff7fac"
+    brightGreen: "#c8ed71"
+    brightYellow: "#ebdf86"
+    brightBlue: "#75dff2"
+    brightMagenta: "#ae89fe"
+    brightCyan: "#b1c6ca"
+    brightWhite: "#f9f9f4"
+
+# Records, feel free to edit them
+records:
+  - delay: 1000
+    content: "(nbox) macoloco:\e[36mnetbox_env_setup\e[32m (master)\e[34m\e(B\e[m$"
+  - delay: 600
+    content: python input_validate.py input_errors
+  - delay: 400
+    content: "\r\n"
+  - delay: 25
+    content: "\r\n❌ IPAM: Check the contents of \e[32m'input_errors'\e[0m for the following issues:\r\n-role.site.vlan_grp.vlan.tenant: Tenant \e[32m'bobs_tenant'\e[0m of \e[32m'DC0_INET_VL99'\e[0m does not exist\r\n-role.site.vlan_grp.vlan.id: Id \e[32m'10'\e[0m of vlan \e[32m'DC0_MGMT_VL10'\e[0m must be an integer\r\n-role.site.vlan_grp.vrf.prefix.pfx: Pfx \e[32m'192.168.900.0/246'\e[0m is not a valid IPv4 Address/Netmask\r\n-role.site.vlan_grp.vrf.prefix.vl: Vl \e[32m'10'\e[0m of \e[32m'10.10.10.0/24'\e[0m does not exist\r\n\r\n\r\n"
+  - delay: 1300
+    content: "(nbox) macoloco:\e[36mnetbox_env_setup\e[32m (master)\e[34m\e(B\e[m$"
+  - delay: 1000
+    content: "\r\n"
+  - delay: 25
+    content: "(nbox) macoloco:\e[36mnetbox_env_setup\e[32m (master)\e[34m\e(B\e[m$"
+  - delay: 1000
+    content: python nbox_env_setup.py -o simple_example/
+  - delay: 400
+    content: "\r\n"
+  - delay: 1000
+    content: "✅ Rack Role: \e[32m'patching, network, compute'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Tenant: \e[32m'EvilCorp'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Site: \e[32m'DC0, aws'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Location \e[1m(\e[0mparent\e[1m)\e[0m: \e[32m'DC0 Floor1'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Rack: \e[32m'DC0-FL1-A1, DC0_FL1_B1'\e[0m successfully created\r\n"
+  - delay: 1300
+    content: "(nbox) macoloco:\e[36mnetbox_env_setup\e[32m (master)\e[34m\e(B\e[m$"
+  - delay: 1000
+    content: "\r\n"
+  - delay: 25
+    content: "(nbox) macoloco:\e[36mnetbox_env_setup\e[32m (master)\e[34m\e(B\e[m$"
+  - delay: 1000
+    content: python nbox_env_setup.py -o simple_example/
+  - delay: 2000
+    content: "\r\n"
+  - delay: 25
+    content: "⚠️  Rack Role: \e[32m'patching, network, compute'\e[0m already exist\r\n"
+  - delay: 400
+    content: "⚠️  Tenant: \e[32m'EvilCorp'\e[0m already exist\r\n"
+  - delay: 400
+    content: "⚠️  Site: \e[32m'DC0, aws'\e[0m already exist\r\n"
+  - delay: 400
+    content: "⚠️  Location \e[1m(\e[0mparent\e[1m)\e[0m: \e[32m'DC0 Floor1 \e[0m\e[32m(\e[0m\e[32mdc0_fl1\e[0m\e[32m)\e[0m\e[32m'\e[0m already exist\r\n"
+  - delay: 400
+    content: "⚠️  Rack: \e[32m'DC0-FL1-A1, DC0_FL1_B1'\e[0m already exist\r\n"
+  - delay: 1000
+    content: "(nbox) macoloco:\e[36mnetbox_env_setup\e[32m (master)\e[34m\e(B\e[m$"
+  - delay: 1000
+    content: "\r\n"
+  - delay: 25
+    content: "(nbox) macoloco:\e[36mnetbox_env_setup\e[32m (master)\e[34m\e(B\e[m$"
+  - delay: 1000
+    content: python nbox_env_setup.py simple_example/
+  - delay: 1000
+    content: "\r\n"
+  - delay: 400
+    content: "⚠️  Rack Role: \e[32m'patching, network, compute'\e[0m already exist\r\n"
+  - delay: 400
+    content: "⚠️  Tenant: \e[32m'EvilCorp'\e[0m already exist\r\n"
+  - delay: 400
+    content: "⚠️  Site: \e[32m'DC0, aws'\e[0m already exist\r\n"
+  - delay: 400
+    content: "⚠️  Location \e[1m(\e[0mparent\e[1m)\e[0m: \e[32m'DC0 Floor1 \e[0m\e[32m(\e[0m\e[32mdc0_fl1\e[0m\e[32m)\e[0m\e[32m'\e[0m already exist\r\n"
+  - delay: 400
+    content: "⚠️  Rack: \e[32m'DC0-FL1-A1, DC0_FL1_B1'\e[0m already exist\r\n"
+  - delay: 400
+    content: "✅ Device-role: \e[32m'cabling, router, firewall, switch'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Manufacturer: \e[32m'Cisco, F5, Excel'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Platform: \e[32m'ASA, IOS, IOS-XR, BIGIP'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Device-type: \e[32m'ASA5506-X, Catalyst 3560-CX-12PC-S, PP_Copper_1U, PP_Copper_2U'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ RIRs: \e[32m'AfriNIC, APNIC, ARIN, LAACNIC, RIPE_NCC, RFC1918'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Aggregates: \e[32m'10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Prefix/VLAN Role: \e[32m'EvilCorp'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ VLAN Group: \e[32m'DC0_VLANs'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ VRF: \e[32m'DC0_RED, DC0_BLU, AWS_NT_VNET1'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ VLAN: \e[32m'DC0_INET_VL99, DC0_MGMT_VL10, DC0_COMPUTE_VL20'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Prefix: \e[32m'192.168.1.0/24, 10.10.10.0/24, 10.10.20.0/24, 10.20.10.0/24, 10.20.20.0/24'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Circuit Type: \e[32m'Broadband, Carrier Ethernet, Dedicated Cloud Access'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Provider: \e[32m'Plusnet'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Circuit: \e[32m'plusnet_hme'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Cluster Type: \e[32m'AWS, vSphere'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Cluster Group: \e[32m'AWS_SUB1'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Cluster: \e[32m'AWS UK West, ESX DC0'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Contact Role: \e[32m'provider, facilities'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Contact Group: \e[32m'BT, Site Facilities'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Contacts: \e[32m'BT NOC, BT OOH NOC, Bob Jones'\e[0m successfully created\r\n"
+  - delay: 600
+    content: "✅ Contact Assignment: \e[32m'BT NOC \e[0m\e[32m(\e[0m\e[32mPrimary\e[0m\e[32m)\e[0m\e[32m, BT NOC \e[0m\e[32m(\e[0m\e[32mPrimary\e[0m\e[32m)\e[0m\e[32m, BT OOH NOC \e[0m\e[32m(\e[0m\e[32mSecondary\e[0m\e[32m)\e[0m\e[32m, Bob Jones \e[0m\e[32m(\e[0m\e[32mPrimary\e[0m\e[32m)\e[0m\e[32m, Bob Jones \e[0m\e[32m(\e[0m\e[32mPrimary\e[0m\e[32m)\e[0m\e[32m'\e[0m successfully created\r\n✅ Tags: \e[32m'aws'\e[0m successfully created\r\n"
+  - delay: 2000
+    content: "(nbox) macoloco:\e[36mnetbox_env_setup\e[32m (master)\e[34m\e(B\e[m$"
+
