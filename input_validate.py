@@ -219,7 +219,7 @@ def assert_loc_rack(org_errors, location, all_rr, all_val_tnt, tnt, site):
                     # RACK_ROLE: Assert that the rack role exists
                     assert_in(
                         "tenant.site.location.rack.rack_role",
-                        each_rack.get("role", ""),
+                        each_rack.get("role"),
                         all_rr,
                         each_rack["name"],
                         org_errors,
@@ -445,10 +445,14 @@ class Organisation:
     def engine(self):
         all_rr = self.val_rr()
         all_val_tnt = self.val_tnt(all_rr)
+        # Used for dependency checks
         all_obj.extend(all_val_tnt["tnt"])
         all_obj.extend(all_val_tnt["site"])
         all_obj.extend(all_val_tnt["loc"])
         all_obj.extend(all_val_tnt["rack"])
+        all_tnt.extend(all_val_tnt["tnt"])
+        all_site.extend(all_val_tnt["site"])
+
         # DUPLICATE_OBJ_NAME: Rack Roles, Tenants, Sites, Rack-Groups and Racks should all have a unique name
         input_data = [
             (all_rr, "rack-roles", "rack_role.name"),
@@ -618,6 +622,7 @@ class Ipam:
                 for each_site in each_role["site"]:
                     all_vl_grp, all_vrf = ([] for i in range(2))
                     # SITE_EXIST: Assert that the specified site of the role exists (is in organisation dictionary)
+                    # breakpoint()
                     assert_in(
                         "role.site",
                         each_site.get("name"),

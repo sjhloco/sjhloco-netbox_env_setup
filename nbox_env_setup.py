@@ -221,7 +221,7 @@ def main():
         nbox.engine(
             "Prefix",
             ["ipam.prefixes", "ipam.vrfs"],
-            ["prefix", "vrf_name"],
+            ["prefix", "vrf_id"],
             ipam_dict["prefix"],
         )
 
@@ -278,7 +278,7 @@ def main():
             cnt_dict["cnt_asgn"],
         )
 
-    # 6. Prints any tags that have been created for any of the sections:
+    # 8. Prints any tags that have been created for any of the sections:
     nbox.print_tag_rt("Tags", set(tag_exists), tag_created)
 
 
