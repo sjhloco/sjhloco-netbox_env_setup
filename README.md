@@ -154,10 +154,10 @@ token = 'my_token_got_from_netbox'
 
 Before running ***nbox_env_setup.py*** it is recommended to use ***input_validate.py*** to verify the contents of input YAML file. It is an offline script (doesn't connect to NetBox) that verifies things such as:
 
-- All parent dictionaries (*tenant, manufacturer, rir, role, crt_type, provider, cluster_type*) are present and the key is a list (can be an empty list if not used)\
-- All mandatory dictionaries are present\
-- All Dictionary keys that are meant to be a list, integer, boolean or IPv4 address are of the correct format\
-- All referenced objects such as tenant, site, rack_role, etc, exist within the input file\
+- All parent dictionaries (*tenant, manufacturer, rir, role, crt_type, provider, cluster_type*) are present and the key is a list (can be an empty list if not used)
+- All mandatory dictionaries are present
+- All Dictionary keys that are meant to be a list, integer, boolean or IPv4 address are of the correct format
+- All referenced objects such as tenant, site, rack_role, etc, exist within the input file
 - No duplicate object names
 
 If you are not running all tests (for example don't have organisation defined) you will get dependency warnings as it will look for objects such as sites and tenants which don't exist. Can either ignore or add these to the lists *all_site*, *all_tnt* and *all_obj*.

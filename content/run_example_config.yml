@@ -33,7 +33,7 @@ config:
 
   # Quality
   # 1 - 100
-  quality: 10
+  quality: 100
 
   # Delay between frames in ms
   # If the value is `auto` use the actual recording delays
@@ -111,7 +111,7 @@ config:
 
 # Records, feel free to edit them
 records:
-  - delay: 1000
+  - delay: 2000
     content: "(nbox) macoloco:\e[36mnetbox_env_setup\e[32m (master)\e[34m\e(B\e[m$"
   - delay: 600
     content: python input_validate.py input_errors
@@ -221,6 +221,6 @@ records:
     content: "✅ Contacts: \e[32m'BT NOC, BT OOH NOC, Bob Jones'\e[0m successfully created\r\n"
   - delay: 600
     content: "✅ Contact Assignment: \e[32m'BT NOC \e[0m\e[32m(\e[0m\e[32mPrimary\e[0m\e[32m)\e[0m\e[32m, BT NOC \e[0m\e[32m(\e[0m\e[32mPrimary\e[0m\e[32m)\e[0m\e[32m, BT OOH NOC \e[0m\e[32m(\e[0m\e[32mSecondary\e[0m\e[32m)\e[0m\e[32m, Bob Jones \e[0m\e[32m(\e[0m\e[32mPrimary\e[0m\e[32m)\e[0m\e[32m, Bob Jones \e[0m\e[32m(\e[0m\e[32mPrimary\e[0m\e[32m)\e[0m\e[32m'\e[0m successfully created\r\n✅ Tags: \e[32m'aws'\e[0m successfully created\r\n"
-  - delay: 2000
+  - delay: 4000
     content: "(nbox) macoloco:\e[36mnetbox_env_setup\e[32m (master)\e[34m\e(B\e[m$"
 
