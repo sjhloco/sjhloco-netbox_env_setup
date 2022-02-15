@@ -186,3 +186,5 @@ There are three possible outcomes from the attempt to create each object which a
 ✅ Object created\
 ⚠️ Object already exists\
 ❌ Object can’t be created due to the defined error
+
+![run_example_video](https://user-images.githubusercontent.com/33333983/154142124-1e960b19-4997-4128-a54d-20f4f05b852b.gif)
