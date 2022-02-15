@@ -46,7 +46,7 @@ def input_val(input_dir, argv):
     if os.path.exists(input_dir) == False:
         if os.path.exists(os.path.join(base_dir, input_dir)) == False:
             rc.print(
-                f":x: [b]Input File Error[/b] - Input file directories '{os.path.join(os.getcwd(), input_dir)}' "
+                f":x: Input File Error - Input file directories '{os.path.join(os.getcwd(), input_dir)}' "
                 f"or '{os.path.join(base_dir, input_dir)}' do not exist."
             )
             sys.exit(1)
@@ -67,7 +67,7 @@ def assert_string(msg, obj, errors):
     obj_type = msg.split(".")[-1].capitalize()
     obj_parent = msg.split(".")[-2]
     obj_to_chk = obj.get(msg.split(".")[-1], "string")
-    err_msg = f"[b]-{msg}:[/b] {obj_type} '{obj_to_chk}' of {obj_parent} '{obj['name']}'  should be enclosed in quotes to make it a string"
+    err_msg = f"-{msg}: {obj_type} '{obj_to_chk}' of {obj_parent} '{obj['name']}'  should be enclosed in quotes to make it a string"
     try:
         assert isinstance(obj_to_chk, str), err_msg
     except AssertionError as e:
@@ -83,7 +83,7 @@ def assert_integer(msg, obj, errors):
         obj_name = obj["cid"]
     else:
         obj_name = obj["name"]
-    err_msg = f"[b]-{msg}:[/b] {obj_type} '{obj_to_chk}' of {obj_parent} '{obj_name}' must be an integer"
+    err_msg = f"-{msg}: {obj_type} '{obj_to_chk}' of {obj_parent} '{obj_name}' must be an integer"
     try:
         assert isinstance(obj_to_chk, int), err_msg
     except AssertionError as e:
@@ -94,11 +94,11 @@ def assert_integer(msg, obj, errors):
 def assert_list(msg, obj, errors):
     obj_to_chk = obj.get(msg.split(".")[-1], {})
     if len(msg.split(".")) == 1:
-        err_msg = f"[b]-{msg}:[/b] Parent '{msg}' dictionary must be a list"
+        err_msg = f"-{msg}: Parent '{msg}' dictionary must be a list"
     if len(msg.split(".")) >= 2:
         obj_type = msg.split(".")[-1].capitalize()
         obj_parent = msg.split(".")[-2]
-        err_msg = f"[b]-{msg}:[/b] {obj_type} '{obj_to_chk}' in {obj_parent} '{obj['name']}' must be a list"
+        err_msg = f"-{msg}: {obj_type} '{obj_to_chk}' in {obj_parent} '{obj['name']}' must be a list"
     try:
         assert isinstance(obj_to_chk, list), err_msg
     except AssertionError as e:
@@ -118,7 +118,7 @@ def assert_dict(msg, obj, errors):
         prnt_name = obj["cid"]
     else:
         prnt_name = obj["name"]
-    err_msg = f"[b]-{msg}:[/b] {obj_type} '{obj_to_chk}' for {obj_parent} '{prnt_name}' must be a dictionary"
+    err_msg = f"-{msg}: {obj_type} '{obj_to_chk}' for {obj_parent} '{prnt_name}' must be a dictionary"
     try:
         assert isinstance(obj_to_chk, dict), err_msg
     except AssertionError as e:
@@ -131,9 +131,9 @@ def assert_boolean(msg, obj, errors):
     obj_parent = msg.split(".")[-2]
     obj_to_chk = obj.get(msg.split(".")[-1], False)
     if msg.split(".")[-1] == "pool":
-        err_msg = f"[b]-{msg}:[/b] {obj_type} '{obj_to_chk}' in {obj_parent} '{obj['pfx']}' is not valid, it must be boolean True or False"
+        err_msg = f"-{msg}: {obj_type} '{obj_to_chk}' in {obj_parent} '{obj['pfx']}' is not valid, it must be boolean True or False"
     else:
-        err_msg = f"[b]-{msg}:[/b] {obj_type} '{obj_to_chk}' in {obj_parent} '{obj['name']}' is not valid, it must be boolean True or False"
+        err_msg = f"-{msg}: {obj_type} '{obj_to_chk}' in {obj_parent} '{obj['name']}' is not valid, it must be boolean True or False"
     try:
         assert isinstance(obj_to_chk, bool), err_msg
     except AssertionError as e:
@@ -144,7 +144,7 @@ def assert_boolean(msg, obj, errors):
 def assert_regex_match(msg, obj_to_chk, regex, prnt_name, errors):
     obj_type = msg.split(".")[-1].capitalize()
     obj_parent = msg.split(".")[-2]
-    err_msg = f"[b]-{msg}:[/b] {obj_type} '{obj_to_chk}' for {obj_parent} '{prnt_name}' is not a valid option, it must be one of the defined options"
+    err_msg = f"-{msg}: {obj_type} '{obj_to_chk}' for {obj_parent} '{prnt_name}' is not a valid option, it must be one of the defined options"
     try:
         assert re.match(regex, obj_to_chk), err_msg
     except AssertionError as e:
@@ -156,7 +156,7 @@ def assert_in(msg, input_value, in_obj, from_obj, errors):
     if input_value != None:
         obj_type = msg.split(".")[-1].capitalize()
         err_msg = (
-            f"[b]-{msg}:[/b] {obj_type} '{input_value}' of '{from_obj}' does not exist"
+            f"-{msg}: {obj_type} '{input_value}' of '{from_obj}' does not exist"
         )
         try:
             assert input_value in in_obj, err_msg
@@ -177,7 +177,7 @@ def assert_ipv4(msg, obj, errors):
     obj_type = msg.split(".")[-1].capitalize()
     obj_to_chk = obj[msg.split(".")[-1]]
     err_msg = (
-        f"[b]-{msg}:[/b] {obj_type} '{obj_to_chk}' is not a valid IPv4 Address/Netmask"
+        f"-{msg}: {obj_type} '{obj_to_chk}' is not a valid IPv4 Address/Netmask"
     )
     try:
         ipaddress.IPv4Interface(obj_to_chk)
@@ -191,7 +191,7 @@ def assert_ipv4(msg, obj, errors):
 def duplicate_in_list(input_list, args, errors, end_msg):
     # Args is a list of 0 to 4 args to use in error message before dup error
     dup = [i for i in set(input_list) if input_list.count(i) > 1]
-    err_msg = "[b]-{}:[/b] There are duplicate {} with the same {} '{}', all should be unique {}"
+    err_msg = "-{}: There are duplicate {} with the same {} '{}', all should be unique {}"
     assert_equal(errors, len(dup), 0, err_msg.format(*args, ", ".join(dup), end_msg))
 
 
@@ -212,7 +212,7 @@ def assert_loc_rack(org_errors, location, all_rr, all_val_tnt, tnt, site):
         if location.get("rack") != None:
             assert isinstance(
                 location["rack"], list
-            ), f"[b]-tenant.site.location.rack:[/b] Rack in location '{location.get('name')}' must be a list"
+            ), f"-tenant.site.location.rack: Rack in location '{location.get('name')}' must be a list"
             for each_rack in location["rack"]:
                 if each_rack.get("name") != None:
                     all_val_tnt["rack"].append(each_rack["name"])
@@ -241,12 +241,12 @@ def assert_loc_rack(org_errors, location, all_rr, all_val_tnt, tnt, site):
                 # RACK_NAME: Every rack group must have a name
                 elif each_rack.get("name") == None:
                     org_errors.append(
-                        f"[b]-tenant.site.location.rack.name:[/b] A rack in location '{location.get('name')}' is missing a name, this is a mandatory dictionary"
+                        f"-tenant.site.location.rack.name: A rack in location '{location.get('name')}' is missing a name, this is a mandatory dictionary"
                     )
     # LOCATION_NAME: Every rack-group must have a name
     elif location.get("name") == None:
         org_errors.append(
-            f"[b]-tenant.site.location.name:[/b] A location in site '{site}' is missing a name, this is a mandatory dictionary"
+            f"-tenant.site.location.name: A location in site '{site}' is missing a name, this is a mandatory dictionary"
         )
 
 
@@ -257,7 +257,7 @@ def assert_vrf_pfx(obj, msg, all_vrf, all_vl_numb, errors):
             # VRF: Must be a list and tag validation
             assert isinstance(
                 obj["vrf"], list
-            ), f"[b]-{msg}:[/b] VRF within VLAN-group '{obj['name']}' must be a list of sites"
+            ), f"-{msg}: VRF within VLAN-group '{obj['name']}' must be a list of sites"
             for each_vrf in obj["vrf"]:
                 all_pfx = []
                 if each_vrf.get("name") != None:
@@ -278,10 +278,10 @@ def assert_vrf_pfx(obj, msg, all_vrf, all_vl_numb, errors):
                     # PREFIX: A VRF must have a Prefix dictionary whose key is a list
                     assert (
                         each_vrf.get("prefix") != None
-                    ), f"[b]-{msg}.prefix:[/b] VRF '{each_vrf['name']}' has no list of prefixes, this is a mandatory dictionary"
+                    ), f"-{msg}.prefix: VRF '{each_vrf['name']}' has no list of prefixes, this is a mandatory dictionary"
                     assert isinstance(
                         each_vrf["prefix"], list
-                    ), f"[b]-{msg}.prefix:[/b] Prefix within VRF '{each_vrf['name']}' must be a list"
+                    ), f"-{msg}.prefix: Prefix within VRF '{each_vrf['name']}' must be a list"
                     for each_pfx in each_vrf["prefix"]:
                         if each_pfx.get("pfx") != None:
                             # Adds prefixes to all_pfx list to check for duplicated if the VRF is set to only have unique prefixes
@@ -311,12 +311,12 @@ def assert_vrf_pfx(obj, msg, all_vrf, all_vl_numb, errors):
                             )
                         elif each_pfx.get("pfx") == None:
                             errors.append(
-                                f"[b]-{msg}.prefix.pfx:[/b] A prefix within VRF '{each_vrf['name']}' has no value, this is a mandatory dictionary"
+                                f"-{msg}.prefix.pfx: A prefix within VRF '{each_vrf['name']}' has no value, this is a mandatory dictionary"
                             )
                 # VRF_NAME: Every VRF must have a name
                 elif each_vrf.get("name") == None:
                     errors.append(
-                        f"[b]-{msg}.name:[/b] A VRF within VLAN-group '{obj['name']}' has no name, this is a mandatory dictionary"
+                        f"-{msg}.name: A VRF within VLAN-group '{obj['name']}' has no name, this is a mandatory dictionary"
                     )
                 # DUPLICATE_PFX: Prefixes within a VRFs should all be unique (if set to unique True)
                 duplicate_in_list(
@@ -334,7 +334,7 @@ def print_error(errors, section):
     global are_errors
     are_errors = True
     rc.print(
-        f"\n:x: [b]{section}:[/b] Check the contents of '{argv[1]}' for the following issues:"
+        f"\n:x: {section}: Check the contents of '{argv[1]}' for the following issues:"
     )
     for err in errors:
         rc.print(err)
@@ -357,14 +357,14 @@ class Organisation:
             try:
                 assert isinstance(
                     self.rr, list
-                ), "[b]-rack_role:[/b] Rack-role must be a list"
+                ), "-rack_role: Rack-role must be a list"
                 for each_rr in self.rr:
                     if each_rr.get("name") != None:
                         assert_dict("rack_role.tags", each_rr, self.org_errors)
                         all_rr.append(each_rr["name"])
                     elif each_rr.get("name") == None:
                         self.org_errors.append(
-                            "[b]-rack_role.name:[/b] A rack-role is missing a name, this is a mandatory dictionary"
+                            "-rack_role.name: A rack-role is missing a name, this is a mandatory dictionary"
                         )
             except AssertionError as e:
                 self.org_errors.append(str(e))
@@ -382,14 +382,14 @@ class Organisation:
                 # TNT_NAME: Every tenant must have a name
                 assert (
                     each_tnt.get("name") != None
-                ), "[b]-tenant.name:[/b] A tenant is missing a name, this is a mandatory dictionary"
+                ), "-tenant.name: A tenant is missing a name, this is a mandatory dictionary"
                 # TNT_TAG: If defined must be a dict
                 assert_dict("tenant.tags", each_tnt, self.org_errors)
                 if each_tnt.get("site") != None:
                     # SITE: If defined a site must be a list. If not failfast as cant do any of the further checks
                     assert isinstance(
                         each_tnt["site"], list
-                    ), f"[b]-tenant.site:[/b] Site in tenant '{each_tnt.get('name')}' must be a list"
+                    ), f"-tenant.site: Site in tenant '{each_tnt.get('name')}' must be a list"
                     for each_site in each_tnt["site"]:
                         if each_site.get("name") != None:
                             site = each_site["name"]
@@ -408,7 +408,7 @@ class Organisation:
                             if each_site.get("location") != None:
                                 assert isinstance(
                                     each_site["location"], list
-                                ), f"[b]-tenant.site.location:[/b] Location in site '{site}' must be a list"
+                                ), f"-tenant.site.location: Location in site '{site}' must be a list"
                                 # LOC_RACK: Asserts formatting of Location and Rack variables
                                 for each_prnt_loc in each_site["location"]:
                                     assert_loc_rack(
@@ -423,7 +423,7 @@ class Organisation:
                                     if each_prnt_loc.get("location") != None:
                                         assert isinstance(
                                             each_prnt_loc["location"], list
-                                        ), f"[b]-tenant.site.location.location:[/b] Nested location in site '{site}' must be a list[/i]"
+                                        ), f"-tenant.site.location.location: Nested location in site '{site}' must be a list[/i]"
                                         for each_chld_loc in each_prnt_loc["location"]:
                                             assert_loc_rack(
                                                 self.org_errors,
@@ -436,7 +436,7 @@ class Organisation:
                         # SITE_NAME: Every site must have a name
                         elif each_site.get("name") == None:
                             self.org_errors.append(
-                                f"[b]-tenant.site.name:[/b] A site in tenant '{each_tnt['name']}' is missing a name, this is a mandatory dictionary"
+                                f"-tenant.site.name: A site in tenant '{each_tnt['name']}' is missing a name, this is a mandatory dictionary"
                             )
             except AssertionError as e:
                 self.org_errors.append(str(e))
@@ -488,7 +488,7 @@ class Devices:
             try:
                 assert isinstance(
                     self.dvc_role, list
-                ), "[b]-device_role:[/b] Device-role must be a list"
+                ), "-device_role: Device-role must be a list"
                 for each_dvc_role in self.dvc_role:
                     if each_dvc_role.get("name") != None:
                         assert_boolean(
@@ -497,7 +497,7 @@ class Devices:
                         all_dvc_roles.append(each_dvc_role["name"])
                     elif each_dvc_role.get("name") == None:
                         self.dvc_errors.append(
-                            "[b]-device_role.name:[/b] A device-role is missing a name, this is a mandatory dictionary"
+                            "-device_role.name: A device-role is missing a name, this is a mandatory dictionary"
                         )
             except AssertionError as e:
                 self.dvc_errors.append(str(e))
@@ -511,19 +511,19 @@ class Devices:
                 # MFTR_NAME: Every manufacturer must have a name and validates tag
                 assert (
                     each_mftr.get("name") != None
-                ), "[b]-manufacturer.name:[/b] A manufacturer is missing a name, this is a mandatory dictionary"
+                ), "-manufacturer.name: A manufacturer is missing a name, this is a mandatory dictionary"
                 assert_dict("manufacturer.tags", each_mftr, self.dvc_errors)
                 all_val_mftr["mftr"].append(each_mftr["name"])
                 if each_mftr.get("platform") != None:
                     # PLATFORM: If defined a platform must be a list. If not failfast as cant do any of the further checks
                     assert isinstance(
                         each_mftr["platform"], list
-                    ), f"[b]-manufacturer.platform:[/b] Platform in manufacturer '{each_mftr['name']}' must be a list"
+                    ), f"-manufacturer.platform: Platform in manufacturer '{each_mftr['name']}' must be a list"
                     for each_pltm in each_mftr["platform"]:
                         # PLATFORM_NAME: Every site must have a name
                         if each_pltm.get("name") == None:
                             self.dvc_errors.append(
-                                f"[b]-manufacturer.platform.name:[/b] A platform in manufacturer '{each_mftr['name']}' is missing a name, this is a mandatory dictionary"
+                                f"-manufacturer.platform.name: A platform in manufacturer '{each_mftr['name']}' is missing a name, this is a mandatory dictionary"
                             )
                         elif each_pltm.get("name") != None:
                             assert_dict(
@@ -574,7 +574,7 @@ class Ipam:
                 # RIR_NAME: Every RIR must have a name and tag validation
                 assert (
                     each_rir.get("name") != None
-                ), "[b]-rir.name:[/b] A RIR is missing a name, this is a mandatory dictionary"
+                ), "-rir.name: A RIR is missing a name, this is a mandatory dictionary"
                 assert_dict("rir.tags", each_rir, self.ipam_errors)
                 all_rir.append(each_rir["name"])
                 assert_boolean("rir.is_private", each_rir, self.ipam_errors)
@@ -582,7 +582,7 @@ class Ipam:
                 if each_rir.get("aggregate") != None:
                     assert isinstance(
                         each_rir["aggregate"], list
-                    ), f"[b]-rir.aggregate:[/b] Aggregate in RIR '{each_rir.get('name')}' must be a list"
+                    ), f"-rir.aggregate: Aggregate in RIR '{each_rir.get('name')}' must be a list"
                     for each_aggr in each_rir["aggregate"]:
                         # RIR_PREFIX: Must be defined and a valid IPv4 address
                         if each_aggr.get("prefix") != None:
@@ -595,7 +595,7 @@ class Ipam:
                             )
                         elif each_aggr.get("prefix") == None:
                             self.ipam_errors.append(
-                                f"[b]-rir.ranges.prefix:[/b] A prefix is missing for one of the ranges in RIR '{each_rir['name']}', this is a mandatory dictionary"
+                                f"-rir.ranges.prefix: A prefix is missing for one of the ranges in RIR '{each_rir['name']}', this is a mandatory dictionary"
                             )
             except AssertionError as e:
                 self.ipam_errors.append(str(e))
@@ -609,16 +609,16 @@ class Ipam:
                 # ROLE_NAME: Every Role must have a name and validate tag
                 assert (
                     each_role.get("name") != None
-                ), "[b]-role.name:[/b] A prefix/VLAN-role is missing a name, this is a mandatory dictionary"
+                ), "-role.name: A prefix/VLAN-role is missing a name, this is a mandatory dictionary"
                 # assert_dict("role.tags", each_role, self.ipam_errors)
                 all_role.append(each_role["name"])
                 # ROLE_SITE: A role must have a site dictionary whose key is a list
                 assert (
                     each_role.get("site") != None
-                ), f"[b]-role.site:[/b] Prefix/VLAN-role '{each_role['name']}' has no list of sites, this is a mandatory dictionary"
+                ), f"-role.site: Prefix/VLAN-role '{each_role['name']}' has no list of sites, this is a mandatory dictionary"
                 assert isinstance(
                     each_role["site"], list
-                ), f"[b]-role.site:[/b] Site within role '{each_role['name']}' must be a list of sites"
+                ), f"-role.site: Site within role '{each_role['name']}' must be a list of sites"
                 for each_site in each_role["site"]:
                     all_vl_grp, all_vrf = ([] for i in range(2))
                     # SITE_EXIST: Assert that the specified site of the role exists (is in organisation dictionary)
@@ -634,7 +634,7 @@ class Ipam:
                     if each_site.get("vlan_grp") != None:
                         assert isinstance(
                             each_site["vlan_grp"], list
-                        ), f"[b]-role.site.vlan_grp:[/b] VLAN-group within Site '{each_site['name']}' must be a list"
+                        ), f"-role.site.vlan_grp: VLAN-group within Site '{each_site['name']}' must be a list"
                         for each_vl_grp in each_site["vlan_grp"]:
                             all_vl_name, all_vl_numb = ([] for i in range(2))
                             if each_vl_grp.get("name") != None:
@@ -656,7 +656,7 @@ class Ipam:
                                     # VLAN: Must be a list and validates tag
                                     assert isinstance(
                                         each_vl_grp["vlan"], list
-                                    ), f"[b]-role.site.vlan_grp.vlan:[/b] VLAN within VLAN-group '{each_vl_grp['name']}' must be a list"
+                                    ), f"-role.site.vlan_grp.vlan: VLAN within VLAN-group '{each_vl_grp['name']}' must be a list"
                                     for each_vl in each_vl_grp["vlan"]:
                                         if each_vl.get("name") != None:
                                             assert_dict(
@@ -675,7 +675,7 @@ class Ipam:
                                                 )
                                             elif each_vl.get("id") == None:
                                                 self.ipam_errors.append(
-                                                    f"[b]-role.site.vlan_grp.vlan.id:[/b] VLAN '{each_vl['name']}' has no VLAN id, this is a mandatory dictionary"
+                                                    f"-role.site.vlan_grp.vlan.id: VLAN '{each_vl['name']}' has no VLAN id, this is a mandatory dictionary"
                                                 )
                                             # VL TNT: If defined make sure tenant exists
                                             assert_in(
@@ -688,7 +688,7 @@ class Ipam:
                                         # VLAN_NAME: Every Group must have a name
                                         elif each_vl.get("name") == None:
                                             self.ipam_errors.append(
-                                                f"[b]-role.site.vlan_grp.vlan.name:[/b] A VLAN within VLAN-group '{each_vl_grp['name']}' has no name, this is a mandatory dictionary"
+                                                f"-role.site.vlan_grp.vlan.name: A VLAN within VLAN-group '{each_vl_grp['name']}' has no name, this is a mandatory dictionary"
                                             )
                                             # VRF_PREFIX: Asserts VRF and Prefix variables exist for VRFs under the VLAN Group (prefixes associated to VLANs like physical site)
                                             assert_vrf_pfx(
@@ -701,7 +701,7 @@ class Ipam:
                                 # VLAN_GRP_NAME: Every VLAN Group must have a name
                                 elif each_vl_grp.get("name") == None:
                                     self.ipam_errors.append(
-                                        f"[b]-role.site.vlan_grp.name:[/b] A VLAN-group within site '{each_site['name']}' has no name, this is a mandatory dictionary"
+                                        f"-role.site.vlan_grp.name: A VLAN-group within site '{each_site['name']}' has no name, this is a mandatory dictionary"
                                     )
                                 # DUPLICATE_VLAN: VLAN names and Numbers within a VLAN group should all be unique
                                 duplicate_in_list(
@@ -727,7 +727,7 @@ class Ipam:
                     # SITE_NAME: Every site must have a name
                     elif each_site.get("name") == None:
                         self.ipam_errors.append(
-                            f"[b]-role.site.name:[/b] A site in prefix/VLAN-role '{each_role['name']}' is missing a name, this is a mandatory dictionary"
+                            f"-role.site.name: A site in prefix/VLAN-role '{each_role['name']}' is missing a name, this is a mandatory dictionary"
                         )
                     # DUPLICATE_VRF: VRFs within a site should all be unique
                     duplicate_in_list(
@@ -770,7 +770,7 @@ class Circuits:
             try:
                 assert (
                     each_crt_type.get("name") != None
-                ), "[b]-circuit_type.name:[/b] A circuit-type is missing a name, this is a mandatory dictionary"
+                ), "-circuit_type.name: A circuit-type is missing a name, this is a mandatory dictionary"
                 # TAG: If defined must be a dict
                 assert_dict("circuit_type.tags", each_crt_type, self.crt_errors)
                 all_crt_type.append(each_crt_type["name"])
@@ -785,7 +785,7 @@ class Circuits:
                 # PVDR_NAME: Every provider must have a name
                 assert (
                     each_pvdr.get("name") != None
-                ), "[b]-provider.name:[/b] A provider is missing a name, this is a mandatory dictionary"
+                ), "-provider.name: A provider is missing a name, this is a mandatory dictionary"
                 all_val_pvdr["pvdr"].append(each_pvdr["name"])
                 # ASN: Must be an integrar
                 assert_integer("provider.asn", each_pvdr, self.crt_errors)
@@ -793,10 +793,10 @@ class Circuits:
                 assert_dict("provider.tags", each_pvdr, self.crt_errors)
                 assert (
                     each_pvdr.get("circuit") != None
-                ), f"[b]-provider.circuit:[/b] Provider '{each_pvdr['name']}' has no list of circuits, this is a mandatory dictionary"
+                ), f"-provider.circuit: Provider '{each_pvdr['name']}' has no list of circuits, this is a mandatory dictionary"
                 assert isinstance(
                     each_pvdr["circuit"], list
-                ), f"[b]-provider.circuit:[/b] Circuit in provider '{each_pvdr.get('name')}' must be a list"
+                ), f"-provider.circuit: Circuit in provider '{each_pvdr.get('name')}' must be a list"
                 for each_crt in each_pvdr["circuit"]:
                     if each_crt.get("cid") != None:
                         all_val_pvdr["cid"].append(each_crt["cid"])
@@ -825,7 +825,7 @@ class Circuits:
                     # CRT_CID: Every Circuit must have a CID/name
                     elif each_crt.get("cid") == None:
                         self.crt_errors.append(
-                            f"[b]-provider.circuit.name:[/b] A Circuit in provider '{each_pvdr['name']}' is missing a name, this is a mandatory dictionary"
+                            f"-provider.circuit.name: A Circuit in provider '{each_pvdr['name']}' is missing a name, this is a mandatory dictionary"
                         )
             except AssertionError as e:
                 self.crt_errors.append(str(e))
@@ -869,7 +869,7 @@ class Virtualisation:
             try:
                 assert isinstance(
                     self.cltr_grp, list
-                ), "[b]-cluster_group:[/b] Cluster-group must be a list"
+                ), "-cluster_group: Cluster-group must be a list"
                 for each_cltr_grp in self.cltr_grp:
                     if each_cltr_grp.get("name") != None:
                         assert_dict(
@@ -878,7 +878,7 @@ class Virtualisation:
                         all_cltr_grp.append(each_cltr_grp["name"])
                     elif each_cltr_grp.get("name") == None:
                         self.vrtl_errors.append(
-                            "[b]-cluster_group.name:[/b] A cluster-group is missing a name, this is a mandatory dictionary"
+                            "-cluster_group.name: A cluster-group is missing a name, this is a mandatory dictionary"
                         )
             except AssertionError as e:
                 self.vrtl_errors.append(str(e))
@@ -892,7 +892,7 @@ class Virtualisation:
                 # CLTR_TYPE_NAME: Every Cluster Type must have a name
                 assert (
                     each_cltr_type.get("name") != None
-                ), "[b]-cluster_type.name:[/b] A cluster-type is missing a name, this is a mandatory dictionary"
+                ), "-cluster_type.name: A cluster-type is missing a name, this is a mandatory dictionary"
                 all_cltr_type["cltr_type"].append(each_cltr_type["name"])
                 # TNT_SITE_GRP_TAG: Asserts all 3 exist and validate the tag
                 assert_dict("cluster_type.tags", each_cltr_type, self.vrtl_errors)
@@ -902,7 +902,7 @@ class Virtualisation:
                 if each_cltr_type.get("cluster") != None:
                     assert isinstance(
                         each_cltr_type["cluster"], list
-                    ), f"[b]-cluster_type.cluster:[/b] Cluster in cluster-type '{each_cltr_type['name']}' must be a list"
+                    ), f"-cluster_type.cluster: Cluster in cluster-type '{each_cltr_type['name']}' must be a list"
                     for each_cltr in each_cltr_type["cluster"]:
                         if each_cltr.get("name") != None:
                             # TNT_SITE_GRP_TAG: Asserts all 3 exist and validate the tag
@@ -918,7 +918,7 @@ class Virtualisation:
                             all_cltr_type["cltr"].append(each_cltr["name"])
                         elif each_cltr.get("name") == None:
                             self.vrtl_errors.append(
-                                f"[b]-cluster_group.cluster.name:[/b] A cluster in cluster-type '{each_cltr_type['name']}' is missing a name, this is a mandatory dictionary"
+                                f"-cluster_group.cluster.name: A cluster in cluster-type '{each_cltr_type['name']}' is missing a name, this is a mandatory dictionary"
                             )
             except AssertionError as e:
                 self.vrtl_errors.append(str(e))
@@ -965,7 +965,7 @@ class Contacts:
                 all_cnt_role.append(each_cnt_role["name"])
             elif each_cnt_role.get("name") == None:
                 self.cnt_errors.append(
-                    "[b]-contact_role.name:[/b] A contact_role is missing a name, this is a mandatory dictionary"
+                    "-contact_role.name: A contact_role is missing a name, this is a mandatory dictionary"
                 )
         return all_cnt_role
 
@@ -977,14 +977,14 @@ class Contacts:
                 # CONTACT_GROUP: Validates group has a name
                 assert (
                     each_cnt_grp.get("name") != None
-                ), "[b]-contact_group.name:[/b] A contact-group is missing a name, this is a mandatory dictionary"
+                ), "-contact_group.name: A contact-group is missing a name, this is a mandatory dictionary"
                 assert_dict("contact_group.tags", each_cnt_grp, self.cnt_errors)
                 val_cnt_grp["grp"].append(each_cnt_grp["name"])
                 # CONTACT: Validates name and tags
                 if each_cnt_grp.get("contact") != None:
                     assert isinstance(
                         each_cnt_grp["contact"], list
-                    ), f"[b]-contact_group.contact:[/b] Contact in contact-group '{each_cnt_grp['name']}' must be a list"
+                    ), f"-contact_group.contact: Contact in contact-group '{each_cnt_grp['name']}' must be a list"
                     for each_cnt in each_cnt_grp["contact"]:
                         if each_cnt.get("name") != None:
                             assert_dict(
@@ -993,7 +993,7 @@ class Contacts:
                             val_cnt_grp["cnt"].append(each_cnt["name"])
                         elif each_cnt.get("name") == None:
                             self.cnt_errors.append(
-                                f"[b]-contact_group.contact.name:[/b] A contact in contact-group '{each_cnt_grp['name']}' is missing a name, this is a mandatory dictionary"
+                                f"-contact_group.contact.name: A contact in contact-group '{each_cnt_grp['name']}' is missing a name, this is a mandatory dictionary"
                             )
             except AssertionError as e:
                 self.cnt_errors.append(str(e))
@@ -1007,10 +1007,10 @@ class Contacts:
                 # ASGN_TO_EXIST: Checks assign_to exists and is a dictionary (fails if not as used in naming for other errors)
                 assert (
                     each_cnt_asgn.get("assign_to") != None
-                ), "[b]-contact_assign.assign_to:[/b] A contact_assign is missing assign_to, this is a mandatory dictionary"
+                ), "-contact_assign.assign_to: A contact_assign is missing assign_to, this is a mandatory dictionary"
                 assert isinstance(
                     each_cnt_asgn["assign_to"], dict
-                ), f"[b]-contact_assign.assign_to:[/b] An assign_to element is not dictionary"
+                ), f"-contact_assign.assign_to: An assign_to element is not dictionary"
                 # ASGN_TO_CONTENT: Checks assign_to key is one of allowed and value is an existing object
                 for asgn_type, asgn_name in each_cnt_asgn["assign_to"].items():
                     assert_regex_match(
@@ -1046,15 +1046,15 @@ class Contacts:
                     )
                 elif each_cnt_asgn.get("role") == None:
                     self.cnt_errors.append(
-                        f"[b]-contact_assign.role:[/b] A role for assign_to '{each_cnt_asgn['assign_to']}' is missing, this is a mandatory dictionary"
+                        f"-contact_assign.role: A role for assign_to '{each_cnt_asgn['assign_to']}' is missing, this is a mandatory dictionary"
                     )
                 # CONTACT: Checks that the contact is defined and exists
                 assert (
                     each_cnt_asgn.get("contact") != None
-                ), "[b]-contact_assign.contact:[/b] A contact_assignment is missing a list of contacts, this is a mandatory dictionary"
+                ), "-contact_assign.contact: A contact_assignment is missing a list of contacts, this is a mandatory dictionary"
                 assert isinstance(
                     each_cnt_asgn["contact"], list
-                ), f"[b]-contact_assign.contact:[/b] An assign_to contact is not a list, should be a list of contacts"
+                ), f"-contact_assign.contact: An assign_to contact is not a list, should be a list of contacts"
                 for each_cnt in each_cnt_asgn["contact"]:
                     assert_in(
                         "contact_assign.contact",
@@ -1201,7 +1201,7 @@ def main():
             f"⚠️  The following mandatory dictionaires are missing from input the files, ignore this if not validating those objects"
         )
         for menu, obj in missing_mandatory.items():
-            rc.print(f"[b]-{menu}:[/b] {', '.join(obj)}")
+            rc.print(f"-{menu}: {', '.join(obj)}")
     if are_errors == False:
         rc.print(
             f":white_check_mark: No errors found in the input file, use 'python nbox_env_setup.py {argv[1]}' to build the NetBox environment."

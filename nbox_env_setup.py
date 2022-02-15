@@ -120,7 +120,7 @@ class Inputs:
         if os.path.exists(input_dir) == False:
             if os.path.exists(os.path.join(base_dir, input_dir)) == False:
                 self.rc.print(
-                    f":x: [b]Input File Error[/b] - Input file directories '{os.path.join(os.getcwd(), input_dir)}' "
+                    f":x: Input File Error - Input file directories '{os.path.join(os.getcwd(), input_dir)}' "
                     f"or '{os.path.join(base_dir, input_dir)}' do not exist."
                 )
                 sys.exit(1)
@@ -152,7 +152,7 @@ class Inputs:
         if len(error) != 0:
             for flag, dicts in error.items():
                 self.rc.print(
-                    f":x: [b]Input Error[/b] - The input flag '{flag}' requires dictionaries '{', '.join(list(dicts))}' in the input files"
+                    f":x: Input Error - The input flag '{flag}' requires dictionaries '{', '.join(list(dicts))}' in the input files"
                 )
             sys.exit(1)
         elif len(error) == 0:

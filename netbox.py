@@ -83,7 +83,7 @@ class Nbox:
                 for err in err_msg:
                     if len(err) != 0:  # safe guards against empty dicts
                         self.rc.print(
-                            f":x: [b]{output_name}[/b] '{list(err.keys())[0]}' - {', '.join(list(err.values())[0])}"
+                            f":x: {output_name} '{list(err.keys())[0]}' - {', '.join(list(err.values())[0])}"
                         )
         # If result variable exists means an object was created
         if "result" in locals():
@@ -98,12 +98,12 @@ class Nbox:
         # EXISTING: Message returned if already exists (as long as no errors)
         if len(obj_exist_name) != 0:
             self.rc.print(
-                f"⚠️  [b]{output_name}[/b]: '{', '.join(obj_exist_name)}' already exist"
+                f"⚠️  {output_name}: '{', '.join(obj_exist_name)}' already exist"
             )
         # NEW: Message returned if try/except created a new object
         if len(result) != 0:
             self.rc.print(
-                f":white_check_mark: [b]{output_name}[/b]: '{str(result).replace('[', '').replace(']', '')}' successfully created"
+                f":white_check_mark: {output_name}: '{str(result).replace('[', '').replace(']', '')}' successfully created"
             )
 
     # ----------------------------------------------------------------------------
@@ -160,7 +160,7 @@ class Nbox:
             error = self.merge_dict(err_msg)
             dev_model = each_type["model"]
             self.rc.print(
-                f":x: [b]{output_name}[/b]: Failed to create '{dev_model}' because of errors with '{cmpt}' component - {error}"
+                f":x: {output_name}: Failed to create '{dev_model}' because of errors with '{cmpt}' component - {error}"
             )
             return []
 
@@ -196,7 +196,7 @@ class Nbox:
                     for err in err_msg:
                         if len(err) != 0:
                             self.rc.print(
-                                f":x: [b]{output_name}[/b]: {list(err.keys())[0]} - {list(err.values())[0]}"
+                                f":x: {output_name}: {list(err.keys())[0]} - {list(err.values())[0]}"
                             )
         # PRINT: Prints object already exists or create message
         self.result_msg(output_name, obj_exist_name, all_result)
@@ -310,7 +310,7 @@ class Nbox:
                 api_name = api_attr[1].split(".")[1][:-1]
                 for vlgrp_vrf, vl_pfx in err.items():
                     self.rc.print(
-                        f":x: [b]{output_name}[/b]: {', '.join(set(vl_pfx))} - The {api_name} '{vlgrp_vrf}' for this {output_name.lower()} does not exist"
+                        f":x: {output_name}: {', '.join(set(vl_pfx))} - The {api_name} '{vlgrp_vrf}' for this {output_name.lower()} does not exist"
                     )
             obj_dm = tmp_obj_dm
             api_attr = api_attr[0]
@@ -338,7 +338,7 @@ class Nbox:
                         )
             if len(err) != 0:
                 self.rc.print(
-                    f":x: [b]{output_name}[/b]: Can't get the ID for the name or slug of: '{', '.join(set(err))}'"
+                    f":x: {output_name}: Can't get the ID for the name or slug of: '{', '.join(set(err))}'"
                 )
             obj_dm = tmp_obj_dm
 
@@ -357,7 +357,7 @@ class Nbox:
                 if len(err) != 0:
                     for vlgrp, pfx_vl in err.items():
                         self.rc.print(
-                            f":x: [b]{output_name}[/b]: {', '.join(set(pfx_vl))} in VLAN Group '{vlgrp}' does not exist"
+                            f":x: {output_name}: {', '.join(set(pfx_vl))} in VLAN Group '{vlgrp}' does not exist"
                         )
                 obj["notexist_dm"] = tmp_obj
 
@@ -417,12 +417,10 @@ class Nbox:
     def print_tag_rt(self, input_msg, exists, created) -> None:
         if len(created) != 0:
             self.rc.print(
-                f":white_check_mark: [b]{input_msg}[/b]: '{', '.join(created)}' successfully created"
+                f":white_check_mark: {input_msg}: '{', '.join(created)}' successfully created"
             )
         elif len(exists) != 0:
-            self.rc.print(
-                f"⚠️  [b]{input_msg}[/b]: '{', '.join(exists)}' already exist"
-            )
+            self.rc.print(f"⚠️  {input_msg}: '{', '.join(exists)}' already exist")
 
     # SLUG: If slug is empty replaces it with tenant name (lowercase) replacing whitespace with '_'
     def make_slug(self, obj: str) -> str:
