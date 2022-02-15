@@ -21,7 +21,7 @@ python nbox_env_setup.py simple_example
 import config
 import argparse
 from collections import defaultdict
-from typing import Any, Dict, List
+from typing import Any, Dict
 import sys
 import yaml
 import os
@@ -47,9 +47,9 @@ base_dir = os.getcwd()
 
 # Netbox login details, token (api_token) is stored in non github shared config.py file (create token your user profile or in admin for other users)
 # netbox_url = "https://10.10.10.101"
-# netbox_url = "http://10.10.10.104:8000/"
+netbox_url = "http://10.10.10.104:8000/"
+# netbox_url = "http://10.30.10.104:8000/"
 # netbox_url = "http://10.103.40.120:8000/"
-netbox_url = "http://10.30.10.104:8000/"
 token = config.api_token
 
 # If using Self-signed cert must have been signed by a CA (can all be done on same box in opnessl) and this points to that CA cert
