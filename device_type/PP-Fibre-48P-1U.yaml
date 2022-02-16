@@ -1,0 +1,11 @@
+manufacturer: Generic
+model: PP Fibre 48P 1U
+slug: pp_fib_48p_1u
+part_number: pp_fibre_48p_1u
+u_height: 1
+is_full_depth: False
+
+front_port:
+  - start_port: 1
+    end_port: 48
+    type: lc

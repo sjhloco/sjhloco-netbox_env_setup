@@ -1,7 +1,7 @@
-manufacturer: Excel
-model: PP_Copper_2U
-slug: pp_cop_2u
-part_number: pp_copper_2u
+manufacturer: Generic
+model: PP Copper 48P 2U
+slug: pp_cop_48p_2u
+part_number: pp_copper_48p_2u
 u_height: 2
 is_full_depth: False
 

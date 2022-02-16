@@ -1,0 +1,22 @@
+---
+manufacturer: Cisco
+model: Aironet 2802I-E
+slug: air-ap2802i-E-k9
+part_number: AIR-AP2802I-E-K9
+u_height: 0
+is_full_depth: false
+interfaces:
+  - name: WiFi
+    type: ieee802.11ac
+    mgmt_only: false
+  - name: GigabitEthernet0
+    descr: Physically labeled as POE
+    type: 1000base-t
+    mgmt_only: false
+  - name: LAN1
+    descr: Physically labeled as AUX
+    type: 1000base-t
+    mgmt_only: false
+console-ports:
+  - name: Con 0
+    type: rj-45
