@@ -173,11 +173,13 @@ class Devices:
 
     # DEV_TYPE_CONN: Creates each device type connection object
     def cr_conn(
-        self, model: str, conn_name: str, conn_type: str, intf_mgmt=None
+        self, model: str, conn_name: str, conn_type: str, conn_descr=None, intf_mgmt=None
     ) -> Dict[str, Any]:
         dev_type_obj = dict(
             device_type=dict(model=model), name=conn_name, type=conn_type
         )
+        if conn_descr != None:
+            dev_type_obj.update(dict(description=conn_descr))
         if intf_mgmt != None:
             dev_type_obj.update(dict(mgmt_only=intf_mgmt))
         return dev_type_obj
@@ -196,6 +198,7 @@ class Devices:
                     dev_type_tmpl["model"],
                     each_intf["name"],
                     each_intf["type"],
+                    each_intf.get("descr"), 
                     each_intf.get("mgmt_only", False),
                 )
             )

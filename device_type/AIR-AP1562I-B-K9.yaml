@@ -1,0 +1,22 @@
+---
+manufacturer: Cisco
+model: Aironet 1562I-E
+slug: air-ap1562i-E-k9
+part_number: AIR-AP1562I-E-K9
+u_height: 0
+is_full_depth: false
+interfaces:
+  - name: WiFi
+    type: ieee802.11ac
+    mgmt_only: false
+  - name: GigabitEthernet0
+    descr: GigabitEthernet port for uplink or PoE-In
+    type: 1000base-t
+    mgmt_only: false
+  - name: SFP
+    descr: SFP port for uplink
+    type: 1000base-x-sfp
+    mgmt_only: false
+console-ports:
+  - name: Con 0
+    type: rj-45
