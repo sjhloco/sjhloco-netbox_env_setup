@@ -46,11 +46,8 @@ input_dir = "full_example"
 base_dir = os.getcwd()
 
 # Netbox login details, token (api_token) is stored in non github shared config.py file (create token your user profile or in admin for other users)
-# netbox_url = "https://10.10.10.101"
-# netbox_url = "http://10.10.10.104:8000/"
-# netbox_url = "http://10.30.10.104:8000/"
-netbox_url = "http://10.103.40.120:8000/"
-token = config.api_token
+netbox_url = config.netbox_url
+api_token = config.api_token
 
 # If using Self-signed cert must have been signed by a CA (can all be done on same box in opnessl) and this points to that CA cert
 # os.environ["REQUESTS_CA_BUNDLE"] = os.path.expanduser(
@@ -169,7 +166,7 @@ def main():
     my_vars = arg_vars.input_val(input_dir, args)
     # Initialise Netbox class used to run Netbox API calls
     tag_exists, tag_created, rt_exists, rt_created = ([] for i in range(4))
-    nbox = Nbox(netbox_url, token, tag_exists, tag_created, rt_exists, rt_created)
+    nbox = Nbox(netbox_url, api_token, tag_exists, tag_created, rt_exists, rt_created)
     # Used to run all object creation classes if no flags input
     flag_all = False
     for flag_bool in args.values():

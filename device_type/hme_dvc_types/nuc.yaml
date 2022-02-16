@@ -1,0 +1,21 @@
+manufacturer: Intel
+model: NUC6i5
+slug: nuc6i5
+part_number: nuc6i5syk
+u_height: 1
+is_full_depth: False
+power-ports:
+  - name: PSU
+    type: ita-g         # 3pin UK plug
+interfaces:
+  - name: nic0
+    type: 1000base-t
+    mgmt_only: false
+
+
+
+
+
+
+
+

@@ -138,16 +138,16 @@ dvc_type_dir = os.path.join(os.getcwd(), "device_type")
 base_dir = os.getcwd()
 input_dir = "full_example"
 
-netbox_url = config.url
-token = config.api_token
+netbox_url = config.netbox_url
+api_token = config.api_token
 os.environ['REQUESTS_CA_BUNDLE'] = '/Users/user1/Documents/nbox_py_scripts/myCA.pem'
 ```
 
 The token and NetBox API URL is set in a separate `config.py` variable file that I *.gitignore* so as not to share with the rest of the world. This is imported with `import config` so you either need to add this file or remove the import line and add the token and URL directly in the script. All that *config.py* holds is a single token variable:
 
 ```bash
-url = "http://10.30.10.104:8000/"
-token = 'my_token_got_from_netbox'
+netbox_url = "http://10.30.10.104:8000/"
+api_token = 'my_token_got_from_netbox'
 ```
 
 ## Usage
