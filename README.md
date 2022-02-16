@@ -125,27 +125,28 @@ python -m venv ~/venv/nbox/
 source ~/venv/nbox/bin/activate
 ```
 
-Install the required packages, it uses *pynetbox 6.4.1* as a bug with later versions breaks *nb.ipam.vlans.get()*
+Install the required packages, it uses *pynetbox 6.4.1* as a [bug](https://github.com/netbox-community/pynetbox/issues/447) with later versions breaks *nb.ipam.vlans.get()*
 
 ```bash
 pip install -r requirements.txt
 ```
 
-The first section of the script holds customisable values for the default base directory and folder name (used if not defined at run time), device-type template directory, SSL cert location (if using HTTPS with a self-signed certificate) and the NetBox API URL.
+The first section of the script holds customisable values for the default base directory and folder name (used if not defined at run time), device-type template directory and SSL cert location (if using HTTPS with a self-signed certificate).
 
 ```bash
 dvc_type_dir = os.path.join(os.getcwd(), "device_type")
 base_dir = os.getcwd()
 input_dir = "full_example"
 
-netbox_url = "http://10.30.10.104:8000/"
+netbox_url = config.url
 token = config.api_token
 os.environ['REQUESTS_CA_BUNDLE'] = '/Users/user1/Documents/nbox_py_scripts/myCA.pem'
 ```
 
-The token is set in a separate `config.py` variable file that I *.gitignore* so as not to share the token with the rest of the world. This is imported with `import config` so you either need to add this file or remove the import line and add the token directly in the script. All that *config.py* holds is a single token variable:
+The token and NetBox API URL is set in a separate `config.py` variable file that I *.gitignore* so as not to share with the rest of the world. This is imported with `import config` so you either need to add this file or remove the import line and add the token and URL directly in the script. All that *config.py* holds is a single token variable:
 
 ```bash
+url = "http://10.30.10.104:8000/"
 token = 'my_token_got_from_netbox'
 ```
 
@@ -167,7 +168,7 @@ The script can be run with no flags to create all objects or with flags to only 
 
 | Flag     | Description |
 | -------- | ----------- |
-| `-o` or `--organisation` | Create Organistaion objects (Circuit-type, Provider, Circuit)
+| `-o` or `--organisation` | Create Organisation objects (Circuit-type, Provider, Circuit)
 | `-d` or `--device` | Create Device objects (Manufacturers, Platforms, Device-types, Device-roles)
 | `-i` or `--ipam` | Create IPAM objects (RIR, Aggregates, Prefix/VLAN roles, VLAN groups, VLANs, VRFs, Prefixes)
 | `-p` or `--provider` | Create Provider objects (Circuit-type, Provider, Circuit)
