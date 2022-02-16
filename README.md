@@ -2,17 +2,17 @@
 
 This script will create all the objects within the NetBox environment ready for the addition of devices, it does not add the devices themselves. It is not idempotent as the purpose is to add objects rather than edit or delete existing objects. The Netbox environment is defined in YAML files that follow the hierarchical structure of the NetBox menus. The script follows this same structure allowing sub-sections of the environment to be created or additions to be made to an existing section.
 
+This has been tested against v3.1.7, it wont work on v2.x due to the changes made to the NetBox post v2.8
+
 ## API Engine
 
-From the YAML input files per-object *Data-Models* are built and fed into the API engine to create any objects that do not already exist.
+From the YAML input files *Data-Models* (per-menu) are built and fed into the API engine to create any objects that do not already exist. The *obj_check* method verifies whether an object already exists and uses *obj_create* to create the NetBox objects and handle errors.
 
 [![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbkFbL2lucHV0IFlBTUwgZmlsZS9dLS0-Qnt7RGF0YSBNb2RlbCBNZXRob2R9fS0tPkMoW0NoZWNrIE1ldGhvZF0pLS0-RCgoQ3JlYXRlIE1ldGhvZCkpXG5cbiIsIm1lcm1haWQiOnsidGhlbWUiOiJkZWZhdWx0In0sInVwZGF0ZUVkaXRvciI6ZmFsc2V9)](https://mermaid-js.github.io/mermaid-live-editor/#/edit/eyJjb2RlIjoiZ3JhcGggTFJcbkFbL2lucHV0IFlBTUwgZmlsZS9dLS0-Qnt7RGF0YSBNb2RlbCBNZXRob2R9fS0tPkMoW0NoZWNrIE1ldGhvZF0pLS0-RCgoQ3JlYXRlIE1ldGhvZCkpXG5cbiIsIm1lcm1haWQiOnsidGhlbWUiOiJkZWZhdWx0In0sInVwZGF0ZUVkaXRvciI6ZmFsc2V9)
 
-The *obj_check* method verifies whether an object already exists and uses *obj_create* (API engine) to create the NetBox objects and handle errors.
-
 ## Data Models
 
-Each NetBox menu is represented by a separate data-model class (from *dm.py*) that is instantiated using dictionaries from the input file to create a list of dictionaries for each of the objects under that NetBox menu. These dictionaries are passed through the *engine* class (from *netbox.py*) which hold all the methods that interact with NetBox to check object existence and perform object creation.
+Each NetBox menu is represented by a separate data-model class (from ***dm.py***) that is instantiated using dictionaries from the input file to create a list of dictionaries for each of the objects under that NetBox menu. These dictionaries are passed through the *engine* class (from ***netbox.py***) which hold all the methods that interact with NetBox to check object existence and perform object creation.
 
 All data-model classes are built in the same format consisting of *cr_xxx* methods to create object data-models and a *create_xxx* method to run all the *cr_xxx* methods and return the complete data-model. Below is an example of how *Organisation* objects are created by first instantiating the class using input file dictionaries (*Organisation(xx)*), creating the data-model (*org.create(xx)*) and finally checking for and creating the objects (*nbox.engine(xx)*). A Friendly name (for user message), path of api call, filter (to check if object already exists) and data-model are passed into the engine.
 
@@ -30,7 +30,7 @@ nbox.engine("Rack", "dcim.racks", "name", org_dict["rack"])
 
 ## Input data
 
-The input data can be defined in the one file or split over multiple files of any name (script loads all files in a directory). Because of the hierarchical structure of the YAML file the mandatory dictionary elements will still be required in the file even if those objects are not being created by this script. For example, to create a rack the YAML file needs the tenant, site and location. The structure can be found in the two example setups within the repo.
+The input data can be defined in the one file or split over multiple files of any name (script loads all files in a directory). Because of the hierarchical structure of the YAML file the mandatory dictionary elements will still be required in the file even if those objects are not being created by this script. For example, to create a rack the YAML file needs the tenant, site and location. These 2 example setups to show how the files are structured.
 
 **full_example:** *An example setup with all the available options defined*\
 **simple_example:** *A more streamlined example with just the bare minimum options defined*
@@ -51,7 +51,7 @@ Tenants are top of the tree with optional sites that contain locations (and chil
 | tenant.site.location.location.rack | List of racks in child locations | name | tags, role, height, tenant |
 | rack-role | List of rack roles | name, color, | slug, descr, tags|
 
-Be careful with child locations as if you are using a generic name such as *Room1* although it is nested under the parent location in GUI you need to make sure you define a unique slug as under the hood is no hierarchy.
+Be careful with child locations as if you are using a generic name such as *Room1* although it is nested under the parent location in the GUI you need to make sure you define a unique slug as under the hood is no hierarchy.
 
 ### Devices - *Manufacturers, Platforms, Device-types, Device-roles*
 
@@ -61,15 +61,14 @@ The device-types are built from pre-defined YAML files that can be downloaded fr
 | -------- | -------------------- | --------- | ---------|
 | manufacturer | List of all device manufacturers | name | slug, descr, tags, ***platform*** |
 | manufacturer.platform | List of platforms (used for NAPALM) | name | slug, descr, tags, driver |
-| manufacturer.device_type | List of device-type yaml files | n/a | n/a |
+| manufacturer.device_type | List of device-type yaml files | device-type.yaml | n/a |
 | device_role | List of device roles (to assign to device types) | name, color | slug, descr, tags, vm_role |
 
 ### IPAM - *RIR, Aggregates, Prefix/VLAN roles, VLAN groups, VLANs, VRFs, Prefixes*
 
-Prefix/VLAN roles are at the top of the IPAM hierarchy in the YAML file grouping VLANs and prefixes together to define an environment.
-VLAN-groups, VLANs, VRFs and prefixes are in some way related to sites and tenants. They are defined under the site with the sites tenant automatically associated unless overridden on a VLAN-group/VLAN/VRF/prefix basis.
+Prefix/VLAN roles are at the top of the IPAM hierarchy grouping VLANs and prefixes together to define an environment. VLAN-groups, VLANs, VRFs and prefixes are all in some way related to sites and tenants. They are defined under the site with the sites tenant automatically associated unless overridden on a per-VLAN group, VLAN, VRF or prefix basis.
 
-VRFs and prefixes are either defined under the role (non-VLAN environments like clouds) or the VLAN group (sites with VLANs, prefixes can be associated to VLANs).
+VRFs and prefixes can either be defined under the role (non-VLAN environments like clouds) or the VLAN group (sites with VLANs where prefixes can be associated to VLANs).
 
 | Object   | Description          | Mandatory | Optional |
 | -------- | -------------------- | --------- | ---------|
@@ -79,10 +78,10 @@ VRFs and prefixes are either defined under the role (non-VLAN environments like 
 | role.site | List of existing sites to associate VLANs, VRFs and prefixes | name | ***vlan_grp***, ***vrf***
 | role.site.vlan_grp | List of VLAN groups | name, ***vlan*** | slug, descr, tags, tenant, ***vrf***
 | role.site.vlan_grp.vlan | List of VLANs in the VLAN group| name, id | descr, tags, tenant
-| role.site.vlan_grp.vrf | VRFs in a site with VLANs (prefixes can be linked to VLANs) | name, ***prefix*** | descr, tags, rd, import_rt, export_rt, unique, tenant
+| role.site.vlan_grp.vrf | VRFs in a site with VLANs (prefixes can be linked to VLANs) | name, ***prefix*** | descr, tags, tenant, rd, import_rt, export_rt, unique
 | role.site.vlan_grp.vrf.prefix | List of prefixes within this VRF | pfx | descr, tags, vl, pool, tenant
-| role.site.vrf | VRFs whose prefixes arent associated to VLANs | name, ***prefix*** | descr, tags, rd, import_rt, export_rt, unique, tenant
-| role.site.vrf.prefix | List of prefixes within this VRF | pfx | descr, tags, pool, tenant
+| role.site.vrf | VRFs whose prefixes arent associated to VLANs | name, ***prefix*** | descr, tags, tenant, rd, import_rt, export_rt, unique
+| role.site.vrf.prefix | List of prefixes within this VRF | pfx | descr, tags, tenant, pool
 
 ### Provider/ Circuit -  *Circuit-type, Provider, Circuit*
 
@@ -91,7 +90,7 @@ Providers are the ISPs that hold individual circuits with pre-defined circuit-ty
 | Object   | Description          | Mandatory | Optional |
 | -------- | -------------------- | --------- | ---------|
 | circuit_type | List of circuit types | name | slug, descr, tags
-| provider | List of providers | name | slug, comments, tags, asn, account_num, portal_url ***circuit***
+| provider | List of providers | name | slug, comments, tags, asn, account_num, portal_url, ***circuit***
 | provider.circuit | List of this providers circuits | cid, type | descr, tags, tenant, commit_rate
 
 
@@ -103,11 +102,11 @@ Clusters are groupings of resources which VMs run within. Cluster-groups and typ
 | -------- | -------------------- | --------- | ---------|
 | cluster_group | List of groups (optional) | name | slug, descr, tags
 | cluster_type | List of cluster type | name | slug, descr, tags, ***cluster***
-| cluster_type.cluster | List of clusters of this cluster type | name | comment, tags, site, tenant, group,
+| cluster_type.cluster | List of clusters of this cluster type | name | comment, tags, tenant, site, group,
 
 ### Contacts - *Contact-role, Contact-group, Contact Assignment*
 
-Contacts are actually created under the organisation menu but are defined separately as they can be assigned to a tenant, site, location, rack, manufacturer, clustergroup, cluster, provider, circuit (possibly also Device, PowerPanel, Region, SiteGroup, and VirtualMachine but not tested)
+Contacts are actually in the organisation menu but are defined separately as they can be assigned to a tenant, site, location, rack, manufacturer, clustergroup, cluster, provider or circuit (in GUI you can also assign Device, PowerPanel, Region, SiteGroup, and VirtualMachine).
 
 | Object   | Description          | Mandatory | Optional |
 | -------- | -------------------- | --------- | ---------|
@@ -118,7 +117,7 @@ Contacts are actually created under the organisation menu but are defined separa
 
 ## Installation and Prerequisites
 
-This has been tested against v3.1.7, it wont work on v2.x due to the major changes made to Netbox. Clone the repository and create a virtual environment.
+Clone the repository and create a virtual environment.
 
 ```css
 git clone https://github.com/sjhloco/netbox_env_setup.git
@@ -126,13 +125,13 @@ python -m venv ~/venv/nbox/
 source ~/venv/nbox/bin/activate
 ```
 
-Install the required packages, it uses *pynetbox 6.4.1* as bug with later versions breaks *nb.ipam.vlans.get()*
+Install the required packages, it uses *pynetbox 6.4.1* as a bug with later versions breaks *nb.ipam.vlans.get()*
 
 ```bash
 pip install -r requirements.txt
 ```
 
-The first section of the script holds customisable values for the default base directory and folder name (used if not defined at run time), device-type template directory, SSL cert location (if using HTTPS with a self-signed certificate) and NetBox API URL.
+The first section of the script holds customisable values for the default base directory and folder name (used if not defined at run time), device-type template directory, SSL cert location (if using HTTPS with a self-signed certificate) and the NetBox API URL.
 
 ```bash
 dvc_type_dir = os.path.join(os.getcwd(), "device_type")
@@ -144,7 +143,7 @@ token = config.api_token
 os.environ['REQUESTS_CA_BUNDLE'] = '/Users/user1/Documents/nbox_py_scripts/myCA.pem'
 ```
 
-The token is set in a separate `config.py` variable file that I *.gitignore* so as not to share the token with the rest of the world. This is imported with `import config` so you either need to add this file or if you want to input the token directly in the script remove the import line. All that *config.py* holds is a single token variable:
+The token is set in a separate `config.py` variable file that I *.gitignore* so as not to share the token with the rest of the world. This is imported with `import config` so you either need to add this file or remove the import line and add the token directly in the script. All that *config.py* holds is a single token variable:
 
 ```bash
 token = 'my_token_got_from_netbox'
@@ -152,15 +151,13 @@ token = 'my_token_got_from_netbox'
 
 ## Usage
 
-Before running ***nbox_env_setup.py*** it is recommended to use ***input_validate.py*** to verify the contents of input YAML file. It is an offline script (doesn't connect to NetBox) that verifies things such as:
+Before running ***nbox_env_setup.py*** it is recommended to use ***input_validate.py*** to verify the contents of input YAML files. It is an offline script (doesn't connect to NetBox) that verifies things such as:
 
-- All parent dictionaries (*tenant, manufacturer, rir, role, crt_type, provider, cluster_type*) are present and the key is a list (can be an empty list if not used)
+- All parent dictionaries (*tenant, manufacturer, rir, role, crt_type, provider, cluster_type, contact_role, contact_group, contact_assign*) are present and the key is a list (can be an empty list if not used)
 - All mandatory dictionaries are present
 - All Dictionary keys that are meant to be a list, integer, boolean or IPv4 address are of the correct format
-- All referenced objects such as tenant, site, rack_role, etc, exist within the input file
 - No duplicate object names
-
-If you are not running all tests (for example don't have organisation defined) you will get dependency warnings as it will look for objects such as sites and tenants which don't exist. Can either ignore or add these to the lists *all_site*, *all_tnt* and *all_obj*.
+- All referenced objects such as tenant, site, rack_role, etc, exist within the input file. If you are not running all tests (for example don't have organisation defined) you will get dependency warnings as it will look for objects such as sites and tenants which don't exist. Can either ignore these or add them to the  *all_site*, *all_tnt* and *all_obj* lists to stop the warnings
 
 ```bash
 python input_validate.py simple_example
@@ -179,7 +176,7 @@ The script can be run with no flags to create all objects or with flags to only 
 | none | Create everything
 
 ```python
-python nbox_env_setup.py simple_example.yml
+python nbox_env_setup.py simple_example
 ```
 
 There are three possible outcomes from the attempt to create each object which are relayed back in stdout:\
