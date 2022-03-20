@@ -11,6 +11,9 @@ interfaces:
   - name: nic0
     type: 1000base-t
     mgmt_only: false
+  - name: nic1
+    type: 1000base-t
+    mgmt_only: false
 
 
 

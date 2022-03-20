@@ -1,0 +1,11 @@
+manufacturer: Generic
+model: PP Copper 12P 1U
+slug: pp_cop_12p_1u
+part_number: pp_copper_12p_1u
+u_height: 1
+is_full_depth: False
+
+front_port:
+  - start_port: 1
+    end_port: 12
+    type: 110-punch
