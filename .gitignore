@@ -5,4 +5,5 @@ __pycache__
 hme_base.yml
 info
 TODO
-FOS_INV/
+FOS_INV
+TEST
