@@ -18,7 +18,8 @@ test_input = os.path.join(test_dir, "test_files", "test_inputs.yml")
 # For docker test environment
 token = "0123456789abcdef0123456789abcdef01234567"
 # netbox_url = "http://10.10.10.104:8000"
-netbox_url = "http://10.30.10.104:8000"
+# netbox_url = "http://10.30.10.104:8000"
+netbox_url = "http://10.103.40.120:8000/"
 
 
 # ----------------------------------------------------------------------------
@@ -42,7 +43,7 @@ def load_vars():
 # Test API calls to netbox
 @pytest.fixture(scope="class")
 def load_nbox():
-    global nbox, nb, tnt2, cnt_usr, dvc_type, dvc_type1, mftr, vlan, vl_grp, vrf, pfx, cnt_role, contact, site
+    global nbox, nb, tnt2, cnt_usr, dvc_type, dvc_type1, mftr, vlan, vl_grp, vrf, vrf_rd, pfx, cnt_role, contact, site
     nbox = Nbox(netbox_url, token, [], [], [], [])
     nb = pynetbox.api(url=netbox_url, token=token)
 
@@ -53,6 +54,7 @@ def load_nbox():
     dvc_type1 = "UTEST dvc_type1"
     vl_grp = my_vars["role"][0]["site"][0]["vlan_grp"][0]["name"]
     vrf = my_vars["role"][0]["site"][0]["vlan_grp"][0]["vrf"][0]["name"]
+    vrf_rd = my_vars["role"][0]["site"][0]["vlan_grp"][0]["vrf"][0]["rd"]
     pfx = my_vars["role"][0]["site"][0]["vlan_grp"][0]["vrf"][0]["prefix"][0]
     vlan = my_vars["role"][0]["site"][0]["vlan_grp"][0]["vlan"][0]
     cnt_role = my_vars["contact_role"][0]
@@ -74,7 +76,7 @@ def load_nbox():
     cr_nbox_obj(
         nb, "ipam.vlan-groups", {"name": vl_grp, "slug": make_slug(vl_grp)}, vl_grp
     )
-    cr_nbox_obj(nb, "ipam.vrfs", {"name": vrf}, vrf)
+    cr_nbox_obj(nb, "ipam.vrfs", {"name": vrf, "rd": vrf_rd}, vrf)
     cr_nbox_obj(
         nb,
         "ipam.vlans",
@@ -292,7 +294,7 @@ class TestNbox:
     # 1h. VRF_ID: Test getting VRF ID
     def test_get_vlgrp_vrf_id_vrf(self):
         err_msg = "❌ get_vlgrp_vrf_id: Gathering VRF ID failed"
-        pfx_dict = dict(prefix=pfx["pfx"], vrf=dict(name=vrf))
+        pfx_dict = dict(prefix=pfx["pfx"], vrf=dict(name=vrf), vrf_rd=vrf_rd)
         actual_result = nbox.get_vlgrp_vrf_id(
             ["", "ipam.vrfs"], ["prefix", "vrf_name"], pfx_dict, defaultdict(list)
         )
@@ -304,7 +306,7 @@ class TestNbox:
     def test_get_vlgrp_vrf_id_err(self):
         err_msg = "❌ get_vlgrp_vrf_id: Gathering VRF ID or VLAN group error failed"
         vlan_dict = dict(vid=vlan["id"], name=vlan["name"], group=dict(name="no_vlgrp"))
-        pfx_dict = dict(prefix=pfx["pfx"], vrf=dict(name="no_vrf"))
+        pfx_dict = dict(prefix=pfx["pfx"], vrf=dict(name="no_vrf"), vrf_rd="no_rd")
         desired_result = {"no_vlgrp": [f"{vlan['name']}"], "no_vrf": [f"{pfx['pfx']}"]}
         error = defaultdict(list)
         nbox.get_vlgrp_vrf_id(

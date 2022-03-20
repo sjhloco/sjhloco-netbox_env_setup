@@ -14,7 +14,7 @@ From the YAML input files *Data-Models* (per-menu) are built and fed into the AP
 
 Each NetBox menu is represented by a separate data-model class (from ***dm.py***) that is instantiated using dictionaries from the input file to create a list of dictionaries for each of the objects under that NetBox menu. These dictionaries are passed through the *engine* class (from ***netbox.py***) which hold all the methods that interact with NetBox to check object existence and perform object creation.
 
-All data-model classes are built in the same format consisting of *cr_xxx* methods to create object data-models and a *create_xxx* method to run all the *cr_xxx* methods and return the complete data-model. Below is an example of how *Organisation* objects are created by first instantiating the class using input file dictionaries (*Organisation(xx)*), creating the data-model (*org.create(xx)*) and finally checking for and creating the objects (*nbox.engine(xx)*). A Friendly name (for user message), path of api call, filter (to check if object already exists) and data-model are passed into the engine.
+All data-model classes are built in the same format consisting of *cr_xxx* methods to create object data-models and a *create_xxx* method to run all the *cr_xxx* methods and return the complete data-model. Below is an example of how *Organisation* objects are created by first instantiating the class using input file dictionaries (*Organisation(xx)*), creating the data-model (*org.create(xx)*) and finally checking for and creating the objects (*nbox.engine(xx)*). A Friendly name (for stdout message), path of api call, filter (to check if object already exists) and data-model are passed into the engine.
 
 ``` python
 org = Organisation(my_vars["tenant"], my_vars["rack_role"])
@@ -30,12 +30,12 @@ nbox.engine("Rack", "dcim.racks", "name", org_dict["rack"])
 
 ## Input data
 
-The input data can be defined in the one file or split over multiple files of any name (script loads all files in a directory). Because of the hierarchical structure of the YAML file the mandatory dictionary elements will still be required in the file even if those objects are not being created by this script. For example, to create a rack the YAML file needs the tenant, site and location. These 2 example setups to show how the files are structured.
+The input data can be defined in the one file or split over multiple YAML files (*.yml* and *.yaml*) of any name with the script loading all YAML files in the directory. Because of the hierarchical structure of the YAML file the mandatory dictionary elements will still be required in the file even if those objects are not being created by this script. For example, to create a rack the YAML file needs the tenant, site and location. These 2 example setups to show how the files are structured.
 
 **full_example:** *An example setup with all the available options defined*\
 **simple_example:** *A more streamlined example with just the bare minimum options defined*
 
-For most options the slug is optional and if not defined will be automatically generated from the name replacing any whitespaces with _.
+For most options the slug is optional and if not defined will be automatically generated from the name replacing any whitespaces with _. Make sure to set the slug if you have multiple objects with the same name.
 
 ### Organisation - *Tenants, Sites, Locations, Racks, Rack-roles*
 
@@ -68,6 +68,8 @@ The device-types are built from pre-defined YAML files that can be downloaded fr
 
 Prefix/VLAN roles are at the top of the IPAM hierarchy grouping VLANs and prefixes together to define an environment. VLAN-groups, VLANs, VRFs and prefixes are all in some way related to sites and tenants. They are defined under the site with the sites tenant automatically associated unless overridden on a per-VLAN group, VLAN, VRF or prefix basis.
 
+A VRF or VLAN group can be used in the file multiple times, if this is the case will use the attributes of the first occurrence (description, RT, RD, etc). The use case for this is if you used the same VLAN group or VRF in differing Prefix/VLAN roles (as roles are at the top of the hierarchy).
+
 VRFs and prefixes can either be defined under the role (non-VLAN environments like clouds) or the VLAN group (sites with VLANs where prefixes can be associated to VLANs).
 
 | Object   | Description          | Mandatory | Optional |
@@ -80,8 +82,10 @@ VRFs and prefixes can either be defined under the role (non-VLAN environments li
 | role.site.vlan_grp.vlan | List of VLANs in the VLAN group| name, id | descr, tags, tenant
 | role.site.vlan_grp.vrf | VRFs in a site with VLANs (prefixes can be linked to VLANs) | name, ***prefix*** | descr, tags, tenant, rd, import_rt, export_rt, unique
 | role.site.vlan_grp.vrf.prefix | List of prefixes within this VRF | pfx | descr, tags, vl, pool, tenant
-| role.site.vrf | VRFs whose prefixes arent associated to VLANs | name, ***prefix*** | descr, tags, tenant, rd, import_rt, export_rt, unique
+| role.site.vrf | VRFs whose prefixes aren't associated to VLANs | name, ***prefix*** | descr, tags, tenant, rd, import_rt, export_rt, unique
 | role.site.vrf.prefix | List of prefixes within this VRF | pfx | descr, tags, tenant, pool
+
+RDs are what make VRFs with the same name unique.
 
 ### Provider/ Circuit -  *Circuit-type, Provider, Circuit*
 
@@ -91,8 +95,7 @@ Providers are the ISPs that hold individual circuits with pre-defined circuit-ty
 | -------- | -------------------- | --------- | ---------|
 | circuit_type | List of circuit types | name | slug, descr, tags
 | provider | List of providers | name | slug, comments, tags, asn, account_num, portal_url, ***circuit***
-| provider.circuit | List of this providers circuits | cid, type | descr, tags, tenant, commit_rate
-
+| provider.circuit | List of this providers circuits | cid, type | descr, tags, tenant, commit_rate, comments
 
 ### Virtual - *Cluster-group, Cluster-type, Cluster*
 

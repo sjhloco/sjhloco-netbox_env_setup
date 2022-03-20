@@ -1,6 +1,7 @@
 from typing import Any, Dict, List
 import yaml
 import os
+from collections import defaultdict
 
 # ----------------------------------------------------------------------------
 # 2. ORG_TNT_SITE_RACK: Creates the DM for organisation objects tenant, site, rack-group and rack
@@ -322,6 +323,7 @@ class Ipam:
     def cr_vlan(
         self,
         role: str,
+        # site: str,
         vl_grp_tnt: str,
         each_vlgrp: Dict[str, Any],
         each_vl: Dict[str, Any],
@@ -330,6 +332,7 @@ class Ipam:
             vid=each_vl["id"],
             name=each_vl["name"],
             role=dict(name=role),
+            # site=dict(name=site),
             tenant=self.nb.name_none(
                 vl_grp_tnt, dict(name=each_vl.get("tenant", vl_grp_tnt))
             ),
@@ -367,6 +370,7 @@ class Ipam:
         vrf_tnt: str,
         vlgrp: str,
         vrf: str,
+        vrf_rd: str,
         each_pfx: Dict[str, Any],
     ) -> Dict[str, Any]:
         tmp_pfx = dict(
@@ -374,6 +378,7 @@ class Ipam:
             role=dict(name=role),
             is_pool=each_pfx.get("pool", True),
             vrf=dict(name=vrf),
+            vrf_rd=vrf_rd,
             description=each_pfx.get("descr", ""),
             site=dict(name=site),
             tenant=self.nb.name_none(
@@ -386,6 +391,25 @@ class Ipam:
         if each_pfx.get("vl") != None:
             tmp_pfx["vlan"] = each_pfx["vl"]
         return tmp_pfx
+
+    # FIX_DUP: If VRFs or VL_GRP referenced in multiple diff places in input file, stops it trying to create multiple times (picks first occurrence).
+    def fix_duplicate_obj(self, input_obj: Dict[str, Any]) -> Dict[str, Any]:
+        all_objs = []
+        tmp_obj_dict1, tmp_obj_dict2 = (defaultdict(list) for i in range(2))
+        # Group all Objects with the same name {name: [{obj_dict}]}
+        for each_obj in input_obj:
+            tmp_obj_dict1[each_obj["name"]].append(each_obj)
+        # From the Objects with same name if RD group {name: [{obj_dict}]} else add {name: [{obj_dict}]} again
+        for obj_dm in tmp_obj_dict1.values():
+            for each_obj_dm in obj_dm:
+                if each_obj_dm.get("rd") != None:
+                    tmp_obj_dict2[each_obj_dm["rd"]].append(each_obj_dm)
+                else:
+                    tmp_obj_dict2[each_obj_dm["name"]].append(each_obj_dm)
+        # Get first OBJ element as that should be the one with the full details (description, Tags, RTs, etc)
+        for each_obj in tmp_obj_dict2.values():
+            all_objs.append(each_obj[0])
+        return all_objs
 
     # ENGINE: Runs all the other methods in this class to create dict used to create nbox objects
     def create_ipam(self) -> Dict[str, Any]:
@@ -414,6 +438,7 @@ class Ipam:
                             self.vlan.append(
                                 self.cr_vlan(
                                     each_role["name"],
+                                    # each_site["name"],
                                     vl_grp_tnt,
                                     each_vlgrp,
                                     each_vl,
@@ -433,6 +458,7 @@ class Ipam:
                                             vrf_tnt,
                                             each_vlgrp["name"],
                                             each_vrf["name"],
+                                            each_vrf.get("rd", "null"),
                                             each_pfx,
                                         )
                                     )
@@ -451,17 +477,19 @@ class Ipam:
                                     vrf_tnt,
                                     None,
                                     each_vrf["name"],
+                                    each_vrf.get("rd", "null"),
                                     each_pfx,
                                 )
                             )
+
         # 4j. The Data Models returned to the main method that are used to create the objects
         return dict(
             rir=self.rir,
             aggr=self.aggr,
             role=self.role,
-            vlan_grp=self.vlan_grp,
+            vlan_grp=self.fix_duplicate_obj(self.vlan_grp),
             vlan=self.vlan,
-            vrf=self.vrf,
+            vrf=self.fix_duplicate_obj(self.vrf),
             prefix=self.pfx,
         )
 
@@ -509,6 +537,7 @@ class Circuits:
             type=dict(name=each_crt["type"]),
             provider=dict(name=each_pvdr["name"]),
             description=each_crt.get("descr", ""),
+            comments=each_crt.get("comments", ""),
             tags=self.nb.get_or_create_tag(each_crt.get("tags")),
         )
         # Optional settings Tenant and commit_rate need to be only added if set as empty vlaues breal API calls

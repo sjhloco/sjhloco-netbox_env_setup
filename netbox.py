@@ -46,7 +46,7 @@ class Nbox:
         # Creates 2 lists of DMs based on whether the object already exists or not
         obj_notexist_dm, obj_exist_name = ([] for i in range(2))
         for each_obj_dm in obj_dm:
-            # For checking contact assignment as uses complex filter
+            # For checking complex filter (filter based on more than 1 item)
             if obj_fltr == "multi-fltr":
                 fltr = each_obj_dm["chk_fltr"]
             # For checking all other contacts
@@ -60,7 +60,12 @@ class Nbox:
                         each_obj_dm["name"] + f" ({each_obj_dm[obj_fltr]})"
                     )
                 else:
-                    obj_exist_name.append(each_obj_dm[obj_fltr])
+                    try:
+                        obj_exist_name.append(each_obj_dm[obj_fltr])
+                    except:
+                        obj_exist_name.append(
+                            each_obj_dm.get(each_obj_dm["obj_fltr"], "")
+                        )
         return dict(notexist_dm=obj_notexist_dm, exist_name=obj_exist_name)
 
     # ----------------------------------------------------------------------------
@@ -213,8 +218,15 @@ class Nbox:
     ) -> Dict[str, Any]:
         # VL_GRP/VRF EXIST: Checks if VLAN_GRP or VRF exists, if so gets the id
         grp_vrf_name = obj_dm[obj_fltr[1].split("_")[0]]["name"]
-        if operator.attrgetter(api_attr[1])(self.nb).get(name=grp_vrf_name) != None:
-            obj_id = operator.attrgetter(api_attr[1])(self.nb).get(name=grp_vrf_name).id
+        # FLTR: Create filter for VRF or VL-GRP as VRF needs RD to make unique
+        if api_attr[1] == "ipam.vrfs":
+            fltr = dict(name=grp_vrf_name, rd=obj_dm["vrf_rd"])
+        else:
+            fltr = dict(name=grp_vrf_name)
+        if operator.attrgetter(api_attr[1])(self.nb).get(**fltr) != None:
+            obj_id = operator.attrgetter(api_attr[1])(self.nb).get(**fltr).id
+            # Adds object-id for VRF used for creating prefixes
+            obj_dm["vrf"] = obj_id
             # VLAN/PFX FLTR: Creates filter of IDs to check if VLAN or PFX already exists in VL_GRP or  VRF
             fltr = {
                 obj_fltr[0]: obj_dm[obj_fltr[0]],
@@ -225,7 +237,7 @@ class Nbox:
             obj_dm["multi-fltr"] = obj_dm[obj_fltr[0]]
             return obj_dm
         # ERROR: If VRF or VL_GRP dont exist collects details for message (cant create VLAN/PFX without them)
-        elif operator.attrgetter(api_attr[1])(self.nb).get(name=grp_vrf_name) == None:
+        elif operator.attrgetter(api_attr[1])(self.nb).get(**fltr) == None:
             vl_pfx_name = obj_dm[obj_fltr[0]]
             error[grp_vrf_name].append(vl_pfx_name)
 
@@ -298,6 +310,15 @@ class Nbox:
     def engine(
         self, output_name: str, api_attr: str, obj_fltr: str, obj_dm: Dict[str, Any]
     ) -> None:
+        # VRF: Adds RD to VRF object check as used to identify unique VRFs (VRFs dont have slugs)
+        if output_name == "VRF":
+            for each_obj_dm in obj_dm:
+                each_obj_dm["chk_fltr"] = dict(
+                    name=each_obj_dm["name"], rd=each_obj_dm.get("rd", "null")
+                )
+                each_obj_dm["obj_fltr"] = obj_fltr
+            obj_fltr = "multi-fltr"
+
         # VL-GRP/VRF: Check object exists and get ID which is used when creating VLAN/PFX. Merges error message for all VL-GRP/VRF
         if output_name == "VLAN" or output_name == "Prefix":
             tmp_obj_dm = []

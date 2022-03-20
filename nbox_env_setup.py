@@ -127,8 +127,9 @@ class Inputs:
         # LOAD_FILE: Load the variable files
         my_vars = {}
         for filename in os.listdir(input_dir):
-            with open(os.path.join(input_dir, filename), "r") as file_content:
-                my_vars.update(yaml.load(file_content, Loader=yaml.FullLoader))
+            if filename.endswith("yml") or filename.endswith("yaml"):
+                with open(os.path.join(input_dir, filename), "r") as file_content:
+                    my_vars.update(yaml.load(file_content, Loader=yaml.FullLoader))
         # VAL_FILE: Validates the input dicts needed for the specified flags are present
         val = dict(
             organisation=("tenant", "rack_role"),

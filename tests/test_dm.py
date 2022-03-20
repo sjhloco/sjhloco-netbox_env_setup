@@ -1,6 +1,7 @@
 import pytest
 import yaml
 import os
+from collections import defaultdict
 
 from netbox import Nbox
 from dm import Organisation
@@ -466,6 +467,7 @@ class TestIpam:
             "vl_grp": vlan_grp["name"],
             "vlan": pfx["vl"],
             "vrf": {"name": vrf["name"]},
+            "vrf_rd": vrf["rd"],
         }
         actual_result = ipam.cr_pfx(
             role["name"],
@@ -473,11 +475,27 @@ class TestIpam:
             "",
             vlan_grp["name"],
             vrf["name"],
+            vrf["rd"],
             pfx,
         )
         assert actual_result == desired_pfx, err_msg
 
-    # 3h. IPAM: Test method for creating dict to add all IPAM objects
+    # 3h. FIX_DUP: Test picking first occurrence or duplicate objects (VLAN group or VRF)
+    def test_fix_duplicate_obj(self):
+        err_msg = "❌ fix_duplicate_obj"
+        input_obj = [
+            {"description": "Group1", "name": "VLAN Group1"},
+            {"description": "Group2", "name": "VLAN Group2"},
+            {"description": "VRF1", "name": "VRF1", "rd": "1:1"},
+            {"description": "VRF2", "name": "VRF2", "rd": "2:2"},
+            {"description": "Duplicate VL_GRP descr ignored", "name": "VLAN Group1"},
+            {"description": "Duplicate VRF descr ignored", "name": "VRF1", "rd": "1:1"},
+        ]
+
+        actual_result = ipam.fix_duplicate_obj(input_obj)
+        assert actual_result == input_obj[0:4], err_msg
+
+    # 3i. IPAM: Test method for creating dict to add all IPAM objects
     def test_create_ipam(self):
         err_msg = "❌ create_ipam: Creation of IPAM objects dictionary failed"
         actual_result = ipam.create_ipam()
@@ -534,6 +552,7 @@ class TestCircuits:
         global desired_crt
         desired_crt = {
             "cid": str(cirt["cid"]),
+            "comments": cirt["comments"],
             "commit_rate": cirt["commit_rate"],
             "description": cirt["descr"],
             "provider": {"name": pvdr["name"]},

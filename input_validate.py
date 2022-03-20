@@ -54,8 +54,9 @@ def input_val(input_dir, argv):
             input_dir = os.path.join(base_dir, input_dir)
     my_vars = {}
     for filename in os.listdir(input_dir):
-        with open(os.path.join(input_dir, filename), "r") as file_content:
-            my_vars.update(yaml.load(file_content, Loader=yaml.FullLoader))
+        if filename.endswith("yml") or filename.endswith("yaml"):
+            with open(os.path.join(input_dir, filename), "r") as file_content:
+                my_vars.update(yaml.load(file_content, Loader=yaml.FullLoader))
     return my_vars
 
 
