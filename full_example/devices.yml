@@ -16,14 +16,14 @@ manufacturer:                           # Mandatory - List of all device manufac
       - {name: IOS, slug: ios, driver: ios }
     # DVC_TYPE: Predefined in yaml files that follow community library format (stored in device_types directory)
     device_type:                        # Optional list of device-types
-      - asa5506X.yaml
-      - asa5505.yaml
-      - ws_c3560cx_12pcs.yaml
+      - ASA5506-X.yaml
+      - ASA5505.yaml
+      - WS-C3560CX-12PC-S.yaml
   - name: Excel
     slug: excel
     descr: All patch panels
     device_type:
-      - pp_copper_1u.yaml
+      - PP-Copper-12P-1U.yaml
 
 # DVC_ROLE: Roles of devices. slug, colour, descr and vm_role are optional. By default VMs can be assigned to a device_role, to change this add 'vm_role: False'
 device_role:

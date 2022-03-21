@@ -44,15 +44,15 @@ manufacturer:
       - {name: IOS-XR, driver: iosxr }
     # DVC_TYPE: Predefined in yaml files that follow community library format (stored in device_types directory)
     device_type:
-      - asa5506X.yaml
-      - ws_c3560cx_12pcs.yaml
+      - ASA5506-X.yaml
+      - WS-C3560CX-12PC-S.yaml
   - name: F5
     platform:
     - {name: BIGIP, driver: f5 }
   - name: Excel
     device_type:
-      - pp_copper_1u.yaml
-      - pp_copper_2u.yaml
+      - PP-Copper-12P-1U.yaml
+      - PP-Fibre-24P-1U.yaml
 
 # DVC_ROLE: Roles of devices. slug, colour, descr and vm_role are optional. By default VMs can be assigned to a device_role, to change this add 'vm_role: False'
 device_role:

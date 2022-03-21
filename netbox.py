@@ -209,23 +209,27 @@ class Nbox:
     # ----------------------------------------------------------------------------
     # VLGRP/VRF_ID: Gets the ID for the VLAN Groups and Prefix VRFs
     # ----------------------------------------------------------------------------
-    def get_vlgrp_vrf_id(
+    def get_vlgrp_site_vrf_id(
         self,
         api_attr: str,
         obj_fltr: str,
         obj_dm: Dict[str, Any],
         error: Dict[str, List],
     ) -> Dict[str, Any]:
+        # VL_SITE: If no VLAN Group uses site ID instead to see if exists
+        if api_attr[0] == "ipam.vlans" and obj_dm.get("group") == None:
+            obj_fltr[1] = "site_id"
+            api_attr[1] = "dcim.sites"
         # VL_GRP/VRF EXIST: Checks if VLAN_GRP or VRF exists, if so gets the id
-        grp_vrf_name = obj_dm[obj_fltr[1].split("_")[0]]["name"]
+        grp_site_vrf_name = obj_dm[obj_fltr[1].split("_")[0]]["name"]
         # FLTR: Create filter for VRF or VL-GRP as VRF needs RD to make unique
         if api_attr[1] == "ipam.vrfs":
-            fltr = dict(name=grp_vrf_name, rd=obj_dm["vrf_rd"])
+            fltr = dict(name=grp_site_vrf_name, rd=obj_dm["vrf_rd"])
         else:
-            fltr = dict(name=grp_vrf_name)
+            fltr = dict(name=grp_site_vrf_name)
         if operator.attrgetter(api_attr[1])(self.nb).get(**fltr) != None:
             obj_id = operator.attrgetter(api_attr[1])(self.nb).get(**fltr).id
-            # Adds object-id for VRF used for creating prefixes
+            # Adds object-id for VRF used for creating prefixes (not used if not VRF)
             obj_dm["vrf"] = obj_id
             # VLAN/PFX FLTR: Creates filter of IDs to check if VLAN or PFX already exists in VL_GRP or  VRF
             fltr = {
@@ -236,10 +240,11 @@ class Nbox:
             # Used to by object_chk to add name of VLAN/PFX to exist list (obj["exist_name"])
             obj_dm["multi-fltr"] = obj_dm[obj_fltr[0]]
             return obj_dm
+
         # ERROR: If VRF or VL_GRP dont exist collects details for message (cant create VLAN/PFX without them)
         elif operator.attrgetter(api_attr[1])(self.nb).get(**fltr) == None:
             vl_pfx_name = obj_dm[obj_fltr[0]]
-            error[grp_vrf_name].append(vl_pfx_name)
+            error[grp_site_vrf_name].append(vl_pfx_name)
 
     # ----------------------------------------------------------------------------
     # PREFIX_VLAN: If is a Prefix associated to a VLAN checks against VL_GRP and role to get the unique ID
@@ -249,18 +254,34 @@ class Nbox:
     ) -> Dict[str, Any]:
         if obj_dm.get("vlan") == None:
             return obj_dm
-        # GET_VLAN_ID: If pfx has a vlan, if vl_grp exists gets the VLAN ID and add it to the dict
+        # GET_VLAN_ID: If pfx has a vlan, if vl_grp or site exists gets the VLAN ID and add it to the dict
         elif obj_dm.get("vlan") != None:
             vlan = obj_dm["vlan"]
-            vl_grp = obj_dm["vl_grp"]
-            try:
-                vl_grp_slug = self.nb.ipam.vlan_groups.get(name=vl_grp)["slug"]
-                obj_dm["vlan"] = self.nb.ipam.vlans.get(vid=vlan, group=vl_grp_slug).id
-                return obj_dm
-            # VLAN_NOT_EXIST: If the vlan does not exists collects details for message
-            except:
-                pfx = obj_dm["prefix"]
-                error[vl_grp].append(f"{pfx} 'VLAN {vlan}'")
+            # VL_GRP VLAN ID
+            if obj_dm.get("vl_grp") != None:
+                vl_grp = obj_dm["vl_grp"]
+                try:
+                    vl_grp_slug = self.nb.ipam.vlan_groups.get(name=vl_grp)["slug"]
+                    obj_dm["vlan"] = self.nb.ipam.vlans.get(
+                        vid=vlan, group=vl_grp_slug
+                    ).id
+                    return obj_dm
+                # VLAN_NOT_EXIST: If the vlan does not exists collects details for message
+                except:
+                    pfx = obj_dm["prefix"]
+                    error[vl_grp].append(f"{pfx} 'VLAN {vlan}'")
+            # SITE VLAN ID
+            elif obj_dm.get("site") != None:
+                try:
+                    site_id = self.nb.dcim.sites.get(**obj_dm["site"]).id
+                    obj_dm["vlan"] = self.nb.ipam.vlans.get(
+                        vid=vlan, site_id=site_id
+                    ).id
+                    return obj_dm
+                # VLAN_NOT_EXIST: If the vlan does not exists collects details for message
+                except:
+                    pfx = obj_dm["prefix"]
+                    error[vl_grp].append(f"{pfx} 'VLAN {vlan}'")
 
     # ----------------------------------------------------------------------------
     # CNT_ASGN_ID: Gets the ID for the assignment objects and contacts
@@ -324,7 +345,7 @@ class Nbox:
             tmp_obj_dm = []
             err = defaultdict(list)
             for each_obj_dm in obj_dm:
-                tmp = self.get_vlgrp_vrf_id(api_attr, obj_fltr, each_obj_dm, err)
+                tmp = self.get_vlgrp_site_vrf_id(api_attr, obj_fltr, each_obj_dm, err)
                 if tmp != None:
                     tmp_obj_dm.append(tmp)
             if len(err) != 0:

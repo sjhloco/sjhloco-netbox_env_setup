@@ -127,7 +127,7 @@ class Inputs:
         # LOAD_FILE: Load the variable files
         my_vars = {}
         for filename in os.listdir(input_dir):
-            if filename.endswith("yml") or filename.endswith("yaml"):
+            if filename.endswith(".yml") or filename.endswith(".yaml"):
                 with open(os.path.join(input_dir, filename), "r") as file_content:
                     my_vars.update(yaml.load(file_content, Loader=yaml.FullLoader))
         # VAL_FILE: Validates the input dicts needed for the specified flags are present
@@ -201,6 +201,7 @@ def main():
     if args["ipam"] == True or flag_all == False:
         ipam = Ipam(nbox, my_vars["rir"], my_vars["role"])
         ipam_dict = ipam.create_ipam()
+        # print(ipam_dict)
 
         # Passed into nbox_call are: Friendly name (for user message), path of api call, filter (to check if object already exists), DM of data
         nbox.engine("RIRs", "ipam.rirs", "name", ipam_dict["rir"])

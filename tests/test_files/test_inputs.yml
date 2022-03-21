@@ -82,7 +82,7 @@ role:
                 descr: UTEST data
             vrf:
               - name: UTEST VRF1
-                rd: "65101:1"
+                rd: "99999999:99999999"
                 descr: VRF1 description
                 tenant: UTEST_tenant1
                 prefix:

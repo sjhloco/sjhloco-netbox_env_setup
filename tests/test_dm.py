@@ -432,7 +432,9 @@ class TestIpam:
             "tenant": {"name": vlan_grp["tenant"]},
             "vid": vlan["id"],
         }
-        actual_result = ipam.cr_vlan(role["name"], "UTEST_tenant1", vlan_grp, vlan)
+        actual_result = ipam.cr_vlan(
+            role["name"], None, "UTEST_tenant1", vlan_grp["name"], vlan
+        )
         assert actual_result == desired_vlan, err_msg
 
     # 3f. VRF: Test method for creating dict to add a VRF (no VLAN association)

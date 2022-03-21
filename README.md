@@ -33,7 +33,8 @@ nbox.engine("Rack", "dcim.racks", "name", org_dict["rack"])
 The input data can be defined in the one file or split over multiple YAML files (*.yml* and *.yaml*) of any name with the script loading all YAML files in the directory. Because of the hierarchical structure of the YAML file the mandatory dictionary elements will still be required in the file even if those objects are not being created by this script. For example, to create a rack the YAML file needs the tenant, site and location. These 2 example setups to show how the files are structured.
 
 **full_example:** *An example setup with all the available options defined*\
-**simple_example:** *A more streamlined example with just the bare minimum options defined*
+**simple_example1:** *A more streamlined example with just the bare minimum options defined*
+**simple_example2:** *Same as last example but VLANs are under a site rather than a VLAN group*
 
 For most options the slug is optional and if not defined will be automatically generated from the name replacing any whitespaces with _. Make sure to set the slug if you have multiple objects with the same name.
 
@@ -70,7 +71,7 @@ Prefix/VLAN roles are at the top of the IPAM hierarchy grouping VLANs and prefix
 
 A VRF or VLAN group can be used in the file multiple times, if this is the case will use the attributes of the first occurrence (description, RT, RD, etc). The use case for this is if you used the same VLAN group or VRF in differing Prefix/VLAN roles (as roles are at the top of the hierarchy).
 
-VRFs and prefixes can either be defined under the role (non-VLAN environments like clouds) or the VLAN group (sites with VLANs where prefixes can be associated to VLANs).
+VRFs and prefixes can either be defined under the role (non-VLAN environments like clouds) or the VLAN group (sites with VLANs where prefixes can be associated to VLANs). RDs are what make VRFs with the same name unique.
 
 | Object   | Description          | Mandatory | Optional |
 | -------- | -------------------- | --------- | ---------|
@@ -82,10 +83,11 @@ VRFs and prefixes can either be defined under the role (non-VLAN environments li
 | role.site.vlan_grp.vlan | List of VLANs in the VLAN group| name, id | descr, tags, tenant
 | role.site.vlan_grp.vrf | VRFs in a site with VLANs (prefixes can be linked to VLANs) | name, ***prefix*** | descr, tags, tenant, rd, import_rt, export_rt, unique
 | role.site.vlan_grp.vrf.prefix | List of prefixes within this VRF | pfx | descr, tags, vl, pool, tenant
-| role.site.vrf | VRFs whose prefixes aren't associated to VLANs | name, ***prefix*** | descr, tags, tenant, rd, import_rt, export_rt, unique
+| role.site.vlan | List of VLANs in a site (no vlan group) | name, id | descr, tags, tenant
+| role.site.vrf | VRFs whose prefixes aren't associated to VLANs or are associated to site VLANs | name, ***prefix*** | descr, tags, tenant, rd, import_rt, export_rt, unique
 | role.site.vrf.prefix | List of prefixes within this VRF | pfx | descr, tags, tenant, pool
 
-RDs are what make VRFs with the same name unique.
+VLANs can be grouped under a VLAN group (no duplicates) or directly under the site. If you deploy them under the site VLAN uniqueness will not be enforced in the GUI (allows duplicates) however the script will enforce uniqueness as it will not redeploy a VLAN if it already exists in that site. I personally feel it is better to use a VLAN group as like with prefixes it shows what VLANs are spare.
 
 ### Provider/ Circuit -  *Circuit-type, Provider, Circuit*
 
@@ -189,3 +191,13 @@ There are three possible outcomes from the attempt to create each object which a
 ❌ Object can’t be created due to the defined error
 
 ![run_example_video](https://user-images.githubusercontent.com/33333983/154144431-9cbf0e5d-24d6-4bc2-b580-5096d29f0047.gif)
+
+## Unit test
+
+Unit-testing uses pytest test the majority of situations for the data-modeling (*test_dm.py*) and netbox api calls (*test_netbox.py*). The netbox testing script requires a netbox URL and API as it will build and destroy a test netbox setup to run the tests against.
+
+```python
+pytest -vv
+pytest tests/test_dm.py -vv
+pytest tests/test_netbox.py -vv
+```

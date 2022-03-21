@@ -323,23 +323,26 @@ class Ipam:
     def cr_vlan(
         self,
         role: str,
-        # site: str,
+        site: str,
         vl_grp_tnt: str,
-        each_vlgrp: Dict[str, Any],
+        each_vlgrp: str,
         each_vl: Dict[str, Any],
     ) -> Dict[str, Any]:
-        return dict(
+        tmp_vlan = dict(
             vid=each_vl["id"],
             name=each_vl["name"],
             role=dict(name=role),
-            # site=dict(name=site),
             tenant=self.nb.name_none(
                 vl_grp_tnt, dict(name=each_vl.get("tenant", vl_grp_tnt))
             ),
-            group=dict(name=each_vlgrp["name"]),
             description=each_vl.get("descr", ""),
             tags=self.nb.get_or_create_tag(each_vl.get("tags")),
         )
+        if each_vlgrp != None:
+            tmp_vlan["group"] = dict(name=each_vlgrp)
+        elif site != None:
+            tmp_vlan["site"] = dict(name=site)
+        return tmp_vlan
 
     # 4f. VRF: If defined in the VLAN Group creates VRF
     def cr_vrf(self, vrf_tnt: str, each_vrf: Dict[str, Any]) -> Dict[str, Any]:
@@ -438,9 +441,9 @@ class Ipam:
                             self.vlan.append(
                                 self.cr_vlan(
                                     each_role["name"],
-                                    # each_site["name"],
+                                    None,
                                     vl_grp_tnt,
-                                    each_vlgrp,
+                                    each_vlgrp["name"],
                                     each_vl,
                                 )
                             )
@@ -462,7 +465,20 @@ class Ipam:
                                             each_pfx,
                                         )
                                     )
-                # 4h. VRF_WITH_NO_VLANs: If Prefixes do not have VLANs no VL_GRP, the VRF is the main dictionary with PFX dictionaries underneath it
+                # 4h. VL_SITE: Creates per-site VLAN Dictionary
+                if each_site.get("vlan") != None:
+                    # VLAN: Creates per-vlan-group VLAN Dictionary
+                    for each_vl in each_site["vlan"]:
+                        self.vlan.append(
+                            self.cr_vlan(
+                                each_role["name"],
+                                each_site["name"],
+                                tnt,
+                                None,
+                                each_vl,
+                            )
+                        )
+                # 4i. VRF_WITH_NO_VLANs: If Prefixes do not have VLANs no VL_GRP, the VRF is the main dictionary with PFX dictionaries underneath it
                 if each_site.get("vrf") != None:
                     # VRF: Creates VRF withs its optional settings
                     for each_vrf in each_site["vrf"]:

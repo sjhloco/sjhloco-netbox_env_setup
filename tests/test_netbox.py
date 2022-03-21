@@ -18,8 +18,8 @@ test_input = os.path.join(test_dir, "test_files", "test_inputs.yml")
 # For docker test environment
 token = "0123456789abcdef0123456789abcdef01234567"
 # netbox_url = "http://10.10.10.104:8000"
-# netbox_url = "http://10.30.10.104:8000"
-netbox_url = "http://10.103.40.120:8000/"
+netbox_url = "http://10.30.10.104:8000"
+# netbox_url = "http://10.103.40.120:8000/"
 
 
 # ----------------------------------------------------------------------------
@@ -284,18 +284,29 @@ class TestNbox:
     def test_get_vlgrp_vrf_id_vlgrp(self):
         err_msg = "❌ get_vlgrp_vrf_id: Gathering VLAN Group ID failed"
         vlan_dict = dict(vid=vlan["id"], name=vlan["name"], group=dict(name=vl_grp))
-        actual_result = nbox.get_vlgrp_vrf_id(
+        actual_result = nbox.get_vlgrp_site_vrf_id(
             ["", "ipam.vlan_groups"], ["name", "group_id"], vlan_dict, defaultdict(list)
         )
         assert actual_result["multi-fltr"] == vlan["name"], err_msg
         assert actual_result["chk_fltr"]["name"] == vlan["name"], err_msg
         assert isinstance(actual_result["chk_fltr"]["group_id"], int), err_msg
 
+    # 1h. Site: Test getting site ID
+    def test_get_vlgrp_vrf_id_site(self):
+        err_msg = "❌ get_vlgrp_vrf_id: Gathering VLAN Group ID failed"
+        vlan_dict = dict(vid=vlan["id"], name=vlan["name"], site=dict(name=site))
+        actual_result = nbox.get_vlgrp_site_vrf_id(
+            ["ipam.vlans", ""], ["name", "group_id"], vlan_dict, defaultdict(list)
+        )
+        assert actual_result["multi-fltr"] == vlan["name"], err_msg
+        assert actual_result["chk_fltr"]["name"] == vlan["name"], err_msg
+        assert isinstance(actual_result["chk_fltr"]["site_id"], int), err_msg
+
     # 1h. VRF_ID: Test getting VRF ID
     def test_get_vlgrp_vrf_id_vrf(self):
         err_msg = "❌ get_vlgrp_vrf_id: Gathering VRF ID failed"
         pfx_dict = dict(prefix=pfx["pfx"], vrf=dict(name=vrf), vrf_rd=vrf_rd)
-        actual_result = nbox.get_vlgrp_vrf_id(
+        actual_result = nbox.get_vlgrp_site_vrf_id(
             ["", "ipam.vrfs"], ["prefix", "vrf_name"], pfx_dict, defaultdict(list)
         )
         assert actual_result["multi-fltr"] == pfx["pfx"], err_msg
@@ -309,10 +320,10 @@ class TestNbox:
         pfx_dict = dict(prefix=pfx["pfx"], vrf=dict(name="no_vrf"), vrf_rd="no_rd")
         desired_result = {"no_vlgrp": [f"{vlan['name']}"], "no_vrf": [f"{pfx['pfx']}"]}
         error = defaultdict(list)
-        nbox.get_vlgrp_vrf_id(
+        nbox.get_vlgrp_site_vrf_id(
             ["", "ipam.vlan_groups"], ["name", "group_id"], vlan_dict, error
         )
-        nbox.get_vlgrp_vrf_id(
+        nbox.get_vlgrp_site_vrf_id(
             ["", "ipam.vrfs"], ["prefix", "vrf_name"], pfx_dict, error
         )
         assert error == desired_result, err_msg

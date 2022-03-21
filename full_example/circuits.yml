@@ -25,6 +25,7 @@ provider:                           # Mandatory - List of ISPs
       tenant: tenant2               # Optional
       commit_rate: 100000           # Optional - An integer in Kbps
       tags: {666: 9e9e9e}           # Optional - Dictionary of {name: colour}, can have multiple tags
+      comments: circuit info        # Optional - Extra circuit information
     - cid: test_tag
       type: Fibre Broadband
       tags: {test_tag: 9e9e9e}
