@@ -78,6 +78,10 @@ def load_nbox():
     )
     cr_nbox_obj(nb, "ipam.vrfs", {"name": vrf, "rd": vrf_rd}, vrf)
     cr_nbox_obj(
+        nb, "ipam.prefixes", {"prefix": pfx["pfx"], "vrf": {"name": vrf}}, pfx["pfx"]
+    )
+    cr_nbox_obj(nb, "ipam.prefixes", {"prefix": pfx["pfx"]}, pfx["pfx"])
+    cr_nbox_obj(
         nb,
         "ipam.vlans",
         {"name": vlan["name"], "vid": vlan["id"], "group": dict(name=vl_grp)},
@@ -108,6 +112,8 @@ def load_nbox():
     del_nbox_obj(nb, "dcim.manufacturers", "slug", make_slug(mftr))
     del_nbox_obj(nb, "ipam.vlans", "name", vlan["name"])
     del_nbox_obj(nb, "ipam.vlan-groups", "slug", make_slug(vl_grp))
+    del_nbox_obj(nb, "ipam.prefixes", "prefix_vrf", pfx["pfx"])
+    del_nbox_obj(nb, "ipam.prefixes", "prefix", pfx["pfx"])
     del_nbox_obj(nb, "ipam.vrfs", "name", vrf)
     del_nbox_obj(nb, "tenancy.contacts", "name", contact)
     del_nbox_obj(nb, "tenancy.contact-roles", "slug", cnt_role["slug"])
@@ -128,7 +134,17 @@ def cr_nbox_obj(nb, api_attr, fltr, obj_name):
 
 # Delete unittest netbox objects
 def del_nbox_obj(nb, api_attr, obj_fltr, obj_name):
-    fltr = {obj_fltr: obj_name}
+    # Need to get VRF ID to get prefix to delete as are duplicates for test_obj_check_null_vrf
+    if obj_fltr == "prefix_vrf":
+        obj_fltr = "prefix"
+        try:
+            fltr = {obj_fltr: obj_name, "vrf_id": nb.ipam.vrfs.get(name=vrf).id}
+        except RequestError as e:
+            print(
+                f"❌ An error was raised deleting netbox unit test '{api_attr}' object '{obj_name}'  - {e}"
+            )
+    else:
+        fltr = {obj_fltr: obj_name}
     try:
         if operator.attrgetter(api_attr)(nb).get(**fltr) != None:
             obj = operator.attrgetter(api_attr)(nb).get(**fltr)
@@ -168,6 +184,23 @@ class TestNbox:
             "tenancy.tenants",
             "multi-fltr",
             [{"chk_fltr": chk_fltr, "multi-fltr": tnt2}],
+        )
+        assert actual_result == desired_result, err_msg
+
+    def test_obj_check_null_vrf(self):
+        err_msg = "❌ obj_check: Checking for existence of netbox object in netbox global VRF failed"
+        desired_result = {"exist_name": ["10.10.10.0/24"], "notexist_dm": []}
+        actual_result = nbox.obj_check(
+            "ipam.prefixes",
+            "multi-fltr",
+            [
+                {
+                    "prefix": pfx["pfx"],
+                    "vrf": None,
+                    "multi-fltr": pfx["pfx"],
+                    "chk_fltr": {"prefix": pfx["pfx"], "vrf": None},
+                }
+            ],
         )
         assert actual_result == desired_result, err_msg
 

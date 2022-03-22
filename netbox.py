@@ -52,20 +52,34 @@ class Nbox:
             # For checking all other contacts
             else:
                 fltr = {obj_fltr: each_obj_dm[obj_fltr]}
-            if operator.attrgetter(api_attr)(self.nb).get(**fltr) == None:
-                obj_notexist_dm.append(each_obj_dm)
-            else:
-                if obj_fltr == "slug":
-                    obj_exist_name.append(
-                        each_obj_dm["name"] + f" ({each_obj_dm[obj_fltr]})"
-                    )
+            # GET: Majority of API calls will produce one result (as most objects unique) so can use the get method
+            try:
+                # GBL_VRF: If in Netbox global VRF ignore (name null)
+                if api_attr == "ipam.vrfs" and each_obj_dm["name"] == None:
+                    pass
+                # If not exist add DM for object to list to be created
+                elif operator.attrgetter(api_attr)(self.nb).get(**fltr) == None:
+                    obj_notexist_dm.append(each_obj_dm)
+                # If object exists various methods used to add name to list for stdout
                 else:
-                    try:
-                        obj_exist_name.append(each_obj_dm[obj_fltr])
-                    except:
+                    if obj_fltr == "slug":
                         obj_exist_name.append(
-                            each_obj_dm.get(each_obj_dm["obj_fltr"], "")
+                            each_obj_dm["name"] + f" ({each_obj_dm[obj_fltr]})"
                         )
+                    else:
+                        try:
+                            obj_exist_name.append(each_obj_dm[obj_fltr])
+                        except:
+                            obj_exist_name.append(each_obj_dm.get("obj_fltr", ""))
+            # FLTR: For odd excpetion where objects not unique uses the filter method
+            except:
+                obj_result = list(operator.attrgetter(api_attr)(self.nb).filter(**fltr))
+                for each_rslt in obj_result:
+                    # GBL_VRF_PFX: To differentiate between prefixes in null and in VRFs
+                    if api_attr == "ipam.prefixes":
+                        if each_rslt["vrf"] == fltr["vrf"]:
+                            obj_exist_name.append(each_obj_dm[obj_fltr])
+
         return dict(notexist_dm=obj_notexist_dm, exist_name=obj_exist_name)
 
     # ----------------------------------------------------------------------------
@@ -227,7 +241,15 @@ class Nbox:
             fltr = dict(name=grp_site_vrf_name, rd=obj_dm["vrf_rd"])
         else:
             fltr = dict(name=grp_site_vrf_name)
-        if operator.attrgetter(api_attr[1])(self.nb).get(**fltr) != None:
+        # GBL_VRF: If in the netbox global routing table no need to get VRF ID
+        if api_attr[0] == "ipam.prefixes" and obj_dm["vrf"]["name"] == None:
+            obj_dm["vrf"] = None
+            fltr = {obj_fltr[0]: obj_dm[obj_fltr[0]], "vrf": None}
+            obj_dm["chk_fltr"] = fltr
+            # Used to by object_chk to add name of VLAN/PFX to exist list (obj["exist_name"])
+            obj_dm["multi-fltr"] = obj_dm[obj_fltr[0]]
+            return obj_dm
+        elif operator.attrgetter(api_attr[1])(self.nb).get(**fltr) != None:
             obj_id = operator.attrgetter(api_attr[1])(self.nb).get(**fltr).id
             # Adds object-id for VRF used for creating prefixes (not used if not VRF)
             obj_dm["vrf"] = obj_id

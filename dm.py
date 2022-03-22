@@ -379,16 +379,20 @@ class Ipam:
         tmp_pfx = dict(
             prefix=each_pfx["pfx"],
             role=dict(name=role),
-            is_pool=each_pfx.get("pool", True),
+            is_pool=each_pfx.get("pool", False),
             vrf=dict(name=vrf),
             vrf_rd=vrf_rd,
             description=each_pfx.get("descr", ""),
-            site=dict(name=site),
+            status=each_pfx.get("status", "active"),
             tenant=self.nb.name_none(
                 vrf_tnt, dict(name=each_pfx.get("tenant", vrf_tnt))
             ),
             tags=self.nb.get_or_create_tag(each_pfx.get("tags")),
         )
+        if site == None:
+            tmp_pfx["site"] = site
+        elif site != None:
+            tmp_pfx["site"] = dict(name=site)
         if vlgrp != None:
             tmp_pfx["vl_grp"] = vlgrp
         if each_pfx.get("vl") != None:

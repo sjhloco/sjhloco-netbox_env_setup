@@ -91,6 +91,7 @@ role:
                     descr: Data VLAN
                     pool: True
                     tenant: UTEST_tenant2
+                    status: container
 
 # ----------------------------------------------------------------------------
 # CIRCUIT: Different types that can be associated to circuits. Only name is mandatory, slug and descr are optional

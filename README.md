@@ -82,7 +82,7 @@ VRFs and prefixes can either be defined under the role (non-VLAN environments li
 | role.site.vlan_grp | List of VLAN groups | name, ***vlan*** | slug, descr, tags, tenant, ***vrf***
 | role.site.vlan_grp.vlan | List of VLANs in the VLAN group| name, id | descr, tags, tenant
 | role.site.vlan_grp.vrf | VRFs in a site with VLANs (prefixes can be linked to VLANs) | name, ***prefix*** | descr, tags, tenant, rd, import_rt, export_rt, unique
-| role.site.vlan_grp.vrf.prefix | List of prefixes within this VRF | pfx | descr, tags, vl, pool, tenant
+| role.site.vlan_grp.vrf.prefix | List of prefixes within this VRF | pfx | descr, tags, status, vl, pool, tenant
 | role.site.vlan | List of VLANs in a site (no vlan group) | name, id | descr, tags, tenant
 | role.site.vrf | VRFs whose prefixes aren't associated to VLANs or are associated to site VLANs | name, ***prefix*** | descr, tags, tenant, rd, import_rt, export_rt, unique
 | role.site.vrf.prefix | List of prefixes within this VRF | pfx | descr, tags, tenant, pool

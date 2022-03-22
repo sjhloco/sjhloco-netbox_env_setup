@@ -461,6 +461,7 @@ class TestIpam:
         desired_pfx = {
             "description": pfx["descr"],
             "is_pool": pfx["pool"],
+            "status": pfx["status"],
             "prefix": pfx["pfx"],
             "role": {"name": role["name"]},
             "site": {"name": role["site"][0]["name"]},

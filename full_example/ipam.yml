@@ -70,13 +70,17 @@ role:                               # Mandatory - List of roles
           tenant: tenant2           # Optional - Tenant for this Prefix, overrides tenant set in VRF or the site tenant
           tags: {data_vrf: 9e9e9e}  # Optional - Dictionary of {name: colour}, can have multiple tags
     # NON-VL_VRF: List of VRFs whose prefixes aren't associated to VLANs (for example Azure or AWS)
-    # vrf:                            # Optional
-    # - name: AZU_NT_VNET1
-    #   import_rt: {'65101:1': test}
-    #   export_rt: ['65101:1', 192.168.1.1:2]
-    #   prefix:
-    #   - pfx: 10.20.10.0/24
-    #     descr: NT-vnet1-mgmt
-
-
-
+    vrf:
+    - name: AZU_NT_VNET1
+      import_rt: {'65101:1': test}
+      export_rt: ['65101:1', 192.168.1.1:2]
+      prefix:
+      - pfx: 10.20.10.0/24
+        descr: NT-vnet1-mgmt
+# NULL: Uses Null for site and/or VRF to not associate VRFs
+  - name: Null
+    vrf:
+    - name: Null
+      prefix:
+      - pfx: 10.10.0.0/16
+        status: container           # Optional, can choose Active (default), Container, Reserved or Deprecated
