@@ -67,11 +67,11 @@ The device-types are built from pre-defined YAML files that can be downloaded fr
 
 ### IPAM - *RIR, Aggregates, Prefix/VLAN roles, VLAN groups, VLANs, VRFs, Prefixes*
 
-Prefix/VLAN roles are at the top of the IPAM hierarchy grouping VLANs and prefixes together to define an environment. VLAN-groups, VLANs, VRFs and prefixes are all in some way related to sites and tenants. They are defined under the site with the sites tenant automatically associated unless overridden on a per-VLAN group, VLAN, VRF or prefix basis.
+Prefix/VLAN roles are at the top of the IPAM hierarchy grouping together VLANs and prefixes. VLAN-groups, VLANs, VRFs and prefixes are all in some way related to sites and tenants so are defined under the site with the sites tenant automatically associated (can override tenant on a per-VLAN group, VLAN, VRF or prefix basis).
 
-A VRF or VLAN group can be used in the file multiple times, if this is the case will use the attributes of the first occurrence (description, RT, RD, etc). The use case for this is if you used the same VLAN group or VRF in differing Prefix/VLAN roles (as roles are at the top of the hierarchy).
-
-VRFs and prefixes can either be defined under the role (non-VLAN environments like clouds) or the VLAN group (sites with VLANs where prefixes can be associated to VLANs). RDs are what make VRFs with the same name unique.
+- A Prefix/VLAN role, VRF or VLAN group can be used in the file multiple times with the attributes of the first occurrence (description, RT, RD, etc) used. The use case for this is if you used the same VLAN group or VRF in differing Prefix/VLAN roles (as roles are at the top of the hierarchy).
+- VRFs and prefixes can either be defined under the role (non-VLAN environments like clouds) or the VLAN group (sites with VLANs where prefixes can be associated to VLANs). RDs are what make VRFs with the same name unique.
+- VLANs can be grouped under a VLAN group (no duplicates) or directly under the site. If you deploy them under the site VLAN uniqueness will not be enforced in the GUI (allows duplicates) however the script will enforce uniqueness as it will not redeploy a VLAN if it already exists in that site. I personally feel it is better to use a VLAN group as like with prefixes it shows what VLANs are spare.
 
 | Object   | Description          | Mandatory | Optional |
 | -------- | -------------------- | --------- | ---------|
@@ -87,7 +87,7 @@ VRFs and prefixes can either be defined under the role (non-VLAN environments li
 | role.site.vrf | VRFs whose prefixes aren't associated to VLANs or are associated to site VLANs | name, ***prefix*** | descr, tags, tenant, rd, import_rt, export_rt, unique
 | role.site.vrf.prefix | List of prefixes within this VRF | pfx | descr, tags, tenant, pool
 
-VLANs can be grouped under a VLAN group (no duplicates) or directly under the site. If you deploy them under the site VLAN uniqueness will not be enforced in the GUI (allows duplicates) however the script will enforce uniqueness as it will not redeploy a VLAN if it already exists in that site. I personally feel it is better to use a VLAN group as like with prefixes it shows what VLANs are spare.
+A VRF name of *Null* can be used to add the prefixes to the NetBox *Global* VRF which along with setting the status to *container* allows for prefixes from differing VRFs to be seen as child prefixes under this parent prefix. *Null* can also be used for the site to not associate the prefixes to any particular site. By default all prefixes are not a pool unless specifically set.
 
 ### Provider/ Circuit -  *Circuit-type, Provider, Circuit*
 
