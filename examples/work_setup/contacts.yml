@@ -1,0 +1,76 @@
+# This example shows all the options that are possible to be defined. Mandatory dictionaries must be defined and Optional are at your discretion
+
+# ----------------------------------------------------------------------------
+# CONTACT: Contact-role, Contact Group, Contact Assignment
+# ----------------------------------------------------------------------------
+# CNT_ROLE: At contact assignment a contact can optionally be assigned a role. Name is mandatory, slug, descr and tags optional
+contact_role:
+  - {name: Operational, descr: Day to day operations}
+  - {name: Emergency, descr: Emergency contacts}
+  - {name: Facilities, descr: Facilities team for building fabric and access}
+  - {name: Account, descr: Vendor and supplier account management}
+  - {name: Billing, descr: Service billing contacts}
+
+
+# GROUP: A group contains a list of contacts
+contact_group:
+  - name: Facilities Team
+    descr: Emergency Contacts
+    # CNT: Each contact is a member of a group (can only be a member of one group)
+    contact:
+      - name: Joe Blogs
+        title: Building and Contracts Manager
+        phone: +44 207 123 4567
+        email: joe@evil.org.uk
+        comments: Facilities contact for access
+  - name: Cisco
+    contact:
+      - name: John Doe
+        title: Account Manager
+        phone: +44 208 123 4567
+        email: joe@cisco.com
+      - name: Cisco TAC
+        title: Technical Assistance Centre
+        phone: 0800 404 7778
+        comments: Portal - https://mycase.cloudapps.cisco.com/case
+  - name: Level3
+    contact:
+      - name: Mr No Help
+        title: Account Director for Strategic Partners
+      - name: Level3 NOC Support
+        email: noc@level3.net
+  - name: CenturyLink
+    contact:
+      - name: Billing & Invoices
+        email: billing@centry.net
+        comments: Send billing queries to this email address, invoices will be sent outbound from this email address.
+      - name: CenturyLink NOC Support
+        email: infraco.noc@century.net
+        comments: Portal - https://myportal.exainfra.net/
+
+# ASSIGN: Assign user and role to an object (group assignment is automatic). Provide name (or slug if is not a unique name) of the object to assign to
+contact_assign:
+  - assign_to: {site: "Tower Exchange"}
+    role: Facilities
+    contact: [Joe Blogs]
+  - assign_to: {manufacturer: "Cisco"}
+    role: Operational
+    contact: [Cisco TAC]
+  - assign_to: {manufacturer: "Cisco"}
+    role: Account
+    contact: [John Doe]
+  - assign_to: {provider: "Level3"}
+    role: Account
+    contact: [Mr No Help]
+    priority: secondary
+  - assign_to: {provider: "Level3"}
+    role: Operational
+    contact: [Level3 NOC Support]
+  - assign_to: {provider: "Centurylink"}
+    role: Operational
+    contact: [CenturyLink NOC Support]
+  - assign_to: {provider: "Centurylink"}
+    role: Billing
+    contact: [Billing & Invoices]
+
+

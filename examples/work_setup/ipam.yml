@@ -1,0 +1,230 @@
+# This example shows all the options that are possible to be defined. Mandatory dictionaries must be defined and Optional are at your discretion
+# ----------------------------------------------------------------------------
+# IPAM: RIR, Aggregates, Prefix/VLAN roles, VLAN-groups, VLANs, VRFs, Prefixes
+# ----------------------------------------------------------------------------
+# RIR: Each governing body (including RFC1918) and your public address ranges (aggregates) assigned by them
+rir:
+  - name: afrinic
+    descr: African region
+    slug: afrinic
+  - name: APNIC
+    descr: Asia Pacific region
+  - name: ARIN
+    descr: North America and several Caribbean and North Atlantic islands
+  - name: LAACNIC
+    descr: Latin America and the Caribbean
+  - name: RIPE_NCC
+    descr: Europe, the Middle East, and parts of Central Asia
+    # AGGR: List of aggregates, prefix is mandatory, descr and tags optional
+    aggregate:                        # Optional
+    - {prefix: 88.16.33.16/28, descr: Level3 ranges at DC1 }
+    - {prefix: 21.11.90.240/28, descr: Centurylink ranges at Tower Exchange }
+    - {prefix: 2001:9999:1111:2200::/56, descr: Level3 ranges at DC1}
+    - {prefix: 2001:9999:2222:1111:0000:0000:0000:0000/64, descr: Centurylink ranges at Tower Exchange }
+  - name: RFC1918
+    descr:  RFC 1918 Private address ranges
+    is_private: True
+    aggregate:
+    - {prefix: 10.0.0.0/8, descr: Class A private address range}
+    - {prefix: 172.16.0.0/12, descr: Class B private address range}
+    - {prefix: 192.168.0.0/16, descr: Class C private address range}
+
+
+# IPAM: Roles provide segregation of networks (i.e prod, npe) holding VLANs and prefixes. By default VLANs within a group or prefixes in a VRF must be unique
+role:
+# ----------------------------------------------------------------------------
+# DC: Data Centre VLANs and Prefixes
+# ----------------------------------------------------------------------------
+- name: Data Center Access
+  descr: Red data center access networks (all sites)
+  slug: dc_access_red
+  site:
+  - name: DC1
+    vrf:
+    - name: RED
+      rd: 'x.x.x.x:2002'
+      import_rt: {'65102:10002002': DC1 red import RT, '65211:10002004': AZ red import RT}
+      export_rt: {'65102:10002002': DC1 red export RT, '65211:10002004': AZ red export RT}
+      descr: Red VRF (SD-WAN VPN2002)
+      prefix:
+      - pfx: 10.10.60.0/22
+        descr: SUPERNET > DC1 Red Zone Networks
+        pool: True
+        status: container
+      - pfx: 10.10.63.0/24
+        descr: COMPUTE > Edge devices
+
+- name: Data Center Access - BLU
+  descr: Blue data center access networks (all sites)
+  slug: dc_access_blu
+  site:
+  - name: DC1
+    vlan_grp:
+    - name: DC1 Data Center Access
+      vlan:
+      - name: DC1_BLU_MGMT_VL100
+        id: 100
+      - name: DC1_BLU_COMPUTE_VL110
+        id: 110
+      - name: DC1_BLU_COMPUTE_CITRIX_VL120
+        id: 120
+      vrf:
+      - name: BLU
+        rd: 'x.x.x.x:2001'
+        import_rt: {'65102:10002002': DC1 blue import RT, '65211:10002002': AZ blue import RT, '65213:10002002': AZ blue import RT, }
+        export_rt: {'65102:10002002': DC1 blue export RT, '65211:10002002': AZ blue export RT, '65213:10002002': AZ blue import RT, }
+        descr: Blue VRF (SD-WAN VPN3001)
+        prefix:
+        - pfx: 10.10.0.0/20
+          descr: SUPERNET > DC1 Blue Zone Networks
+          pool: True
+          status: container
+        - pfx: 10.10.0.0/24
+          descr: WAN > Site connections
+        - pfx: 10.10.4.0/24
+          vl: 100
+          descr: ACCESS > DC1 Blue Management
+        - pfx: 10.10.5.0/24
+          vl: 110
+          descr: ACCESS > DC1 Blue Compute
+        - pfx: 10.10.6.0/24
+          vl: 120
+          descr: ACCESS > DC1 Blue Compute Citrix
+  # ----------------------------------------------------------------------------
+  # AZURE: Azure Spoke allocations
+  # ----------------------------------------------------------------------------
+  - name: AZ1
+    vrf:
+    - name: BLU
+      rd: 'x.x.x.x:2001'
+      prefix:
+      - pfx: 10.20.0.0/20
+        descr: SUPERNET > AZ1 BLU1 Blue Zone Networks
+        pool: True
+        status: container
+      - pfx: 10.10.0.0/24
+        descr: WAN > Site connections
+      - pfx: 10.20.4.0/24
+        descr: ACCESS > AZ Blue Management
+      - pfx: 10.20.5.0/24
+        descr: ACCESS > AZ Blue Compute
+      - pfx: 10.20.6.0/24
+        descr: ACCESS > AZ Blue Compute Citrix
+
+
+# ----------------------------------------------------------------------------
+# CAMPUS: Campus VLANs and Prefixes
+# ----------------------------------------------------------------------------
+- name: Campus Access - BLU
+  descr: Blue campus access networks (all sites)
+  slug: campus_access_blu
+  site:
+
+  - name: Tower Exchange
+    # VL_GRP and VLANs: Within the VLAN Groups each VLAN must be a unique ID and name (scoped to a site)
+    vlan_grp:
+    - name: Tower Exchange Campus Access
+      vlan:
+      - name: TE_MGMT
+        id: 101
+      - name: TE_VOICE
+        id: 102
+      - name: TE_DATA
+        id: 103
+      - name: TE_WIFI
+        id: 104
+      # VRFS: VRFs whose prefixes are linked to the VLANs (SVIs) within the VLAN group
+      vrf:
+      - name: BLU
+        rd: 'x.x.x.x:3001'
+        prefix:
+        - pfx: 172.20.0.0/21
+          descr: SUPERNET > TE Blue Zone Access Networks
+          pool: True
+          status: container
+        - pfx: 172.20.0.0/24
+          descr: WAN > Site connections
+        - pfx: 172.20.1.0/24
+          vl: 101
+          descr: ACCESS > TE Management
+        - pfx: 172.20.2.0/24
+          vl: 102
+          descr: ACCESS > FG Voice
+        - pfx: 172.20.3.0/24
+          vl: 103
+          descr: ACCESS > FG End user access
+        - pfx: 172.20.4.0/24
+          vl: 104
+          descr: ACCESS > FG Wifi
+
+  # ----------------------------------------------------------------------------
+  # UL: Underlay VLANs and Prefixes
+  # ----------------------------------------------------------------------------
+- name: Network Infrastructure
+  descr: Underlay, uplinks, transit links, loopbacks and site multi-VRF summary advertisements
+  slug: network_infra
+  site:
+  - name: DC1
+    vlan_grp:
+    - name: DC1 Data Center Access
+      vlan:
+      - name: DC1_RED_UPLINK_INET_VL92
+        id: 92
+      vrf:
+      - name: RED
+        rd: 'x.x.x.x:2004'
+        prefix:
+        - pfx: 10.253.1.56/29
+          vl: 92
+          descr: UPLINK > DC Red Uplink Internet
+  - name: Tower Exchange
+    vrf:
+    - name: Global - TE
+      descr: TE global routing table
+      prefix:
+      - pfx: 192.168.14.0/30
+        descr: UPLINK > TE to DC1
+
+  # ----------------------------------------------------------------------------
+  # BLK_AGGR: Blocks and aggregates not associated to any VRF and/or site
+  # ----------------------------------------------------------------------------
+- name: Blocks and Aggregates
+  descr: Site aggregates are assigned from blocks and Zone (VRF) supernets assigned from aggregates
+  site:
+  - name: Null
+    vrf:
+    - name: Null
+      prefix:
+      - pfx: 10.0.0.0/11
+        descr: BLOCK > Data Centre Aggregates
+        pool: True
+        status: container
+      - pfx: 172.20.0.0/14
+        descr: BLOCK > Campus Aggregates
+        pool: True
+        status: container
+  - name: DC1
+    vrf:
+    - name: Null
+      prefix:
+      - pfx: 10.10.0.0/18
+        descr: AGGREGATE > DC1 Supernets (VRFs)
+        pool: True
+        status: container
+  - name: AZ1
+    vrf:
+    - name: Null
+      prefix:
+      - pfx: 10.20.0.0/18
+        descr: AGGREGATE > AZ1 Supernets (VRFs)
+        pool: True
+        status: container
+  - name: Tower Exchange
+    vrf:
+    - name: Null
+      prefix:
+      - pfx: 172.20.0.0/16
+        descr: AGGREGATE > TE Supernets (VRFs)
+        pool: True
+        status: container
+

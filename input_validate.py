@@ -154,9 +154,6 @@ def assert_regex_match(msg, obj_to_chk, regex, prnt_name, errors):
 
 # IN: Asserts that the variable is within the specified value
 def assert_in(msg, input_value, in_obj, from_obj, errors):
-    # print(msg)
-    # print(input_value)
-    # print(in_obj)
     if input_value != None:
         obj_type = msg.split(".")[-1].capitalize()
         err_msg = f"-{msg}: {obj_type} '{input_value}' of '{from_obj}' does not exist"
@@ -187,13 +184,24 @@ def assert_ipv4(msg, obj, errors):
         errors.append(err_msg)
 
 
+# IPv4: Asserts that the IPv4 Address or interface address are in the correct format
+def assert_ipv6(msg, obj, errors):
+    obj_type = msg.split(".")[-1].capitalize()
+    obj_to_chk = obj[msg.split(".")[-1]]
+    err_msg = f"-{msg}: {obj_type} '{obj_to_chk}' is not a valid IPv6 Address/Netmask"
+    try:
+        ipaddress.IPv6Interface(obj_to_chk)
+    except ipaddress.AddressValueError:
+        errors.append(err_msg)
+    except ipaddress.NetmaskValueError:
+        errors.append(err_msg)
+
+
 # DUPLICATE: Asserts are no duplicate elements in a list, if so returns the duplicate in error message.
 def duplicate_in_list(input_list, args, errors, end_msg):
     # Args is a list of 0 to 4 args to use in error message before dup error
     dup = [i for i in set(input_list) if input_list.count(i) > 1]
-    err_msg = (
-        "-{}: There are duplicate {} with the same {} '{}', all should be unique {}"
-    )
+    err_msg = "-{}: There are duplicate {} with the same {} '{}', all should be unique or if expected ensure the slugs are unique {}"
     assert_equal(errors, len(dup), 0, err_msg.format(*args, ", ".join(dup), end_msg))
 
 
@@ -289,8 +297,12 @@ def assert_vrf_pfx(obj, msg, all_vrf, all_vl_numb, errors):
                             # Adds prefixes to all_pfx list to check for duplicated if the VRF is set to only have unique prefixes
                             if each_vrf.get("unique", True) == True:
                                 all_pfx.append(each_pfx["pfx"])
-                            # PREFIX: Asserts it is a valid IPv4 address and subnet mask
+                            # PREFIX: Asserts it is a valid IPv4 or IPv6 address and subnet mask
                             assert_ipv4(f"{msg}.prefix.pfx", each_pfx, errors)
+                            if "." in each_pfx["pfx"]:
+                                assert_ipv4(f"{msg}.prefix.pfx", each_pfx, errors)
+                            elif ":" in each_pfx["pfx"]:
+                                assert_ipv6(f"{msg}.prefix.pfx", each_pfx, errors)
                             # VLAN_EXIST: Assert that the specified site of the role exists (is in organisation dictionary)
                             assert_in(
                                 f"{msg}.prefix.vl",
@@ -584,11 +596,16 @@ class Ipam:
                         each_rir["aggregate"], list
                     ), f"-rir.aggregate: Aggregate in RIR '{each_rir.get('name')}' must be a list"
                     for each_aggr in each_rir["aggregate"]:
-                        # RIR_PREFIX: Must be defined and a valid IPv4 address
+                        # RIR_PREFIX: Must be defined and a valid IPv4 or IPv6 address
                         if each_aggr.get("prefix") != None:
-                            assert_ipv4(
-                                "rir.aggregate.prefix", each_aggr, self.ipam_errors
-                            )
+                            if "." in each_aggr["prefix"]:
+                                assert_ipv4(
+                                    "rir.aggregate.prefix", each_aggr, self.ipam_errors
+                                )
+                            elif ":" in each_aggr["prefix"]:
+                                assert_ipv6(
+                                    "rir.aggregate.prefix", each_aggr, self.ipam_errors
+                                )
                             # RIR_TAG: If defined must be a dict
                             assert_dict(
                                 "rir.aggregate.tags", each_aggr, self.ipam_errors
@@ -725,10 +742,13 @@ class Ipam:
                             self.ipam_errors,
                         )
                     # SITE_NAME: Every site must have a name
-                    elif each_site.get("name") == None:
-                        self.ipam_errors.append(
-                            f"-role.site.name: A site in prefix/VLAN-role '{each_role['name']}' is missing a name, this is a mandatory dictionary"
-                        )
+                    else:
+                        try:
+                            each_site["name"]
+                        except:
+                            self.ipam_errors.append(
+                                f"-role.site.name: A site in prefix/VLAN-role '{each_role['name']}' is missing a name, this is a mandatory dictionary"
+                            )
                     # DUPLICATE_VRF: VRFs within a site should all be unique
                     duplicate_in_list(
                         all_vrf,

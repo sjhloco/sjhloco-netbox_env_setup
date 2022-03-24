@@ -1,0 +1,53 @@
+# This example shows all the options that are possible to be defined. Mandatory dictionaries must be defined and Optional are at your discretion
+
+# ----------------------------------------------------------------------------
+# DEVICES: Manufacturer, platform, device_type and device role
+# ----------------------------------------------------------------------------
+# MFTR: Each manufacture optionally holds device types (defines device info such as interfaces) and the platform (driver used by NAPALM)
+manufacturer:                           # Mandatory - List of all device manufacturers
+  - name: Cisco
+    # PLTM: Used for NAPALM. driver and slug optional, if driver not defined uses the name
+    platform:                           # Optional
+      - {name: IOS, slug: ios, driver: ios }
+      - {name: NXOS, slug: nxos, driver: nxos }
+      - {name: WLC, slug: wlc, driver: cisco_wlc_ssh }
+      - {name: ASA, slug: asa, driver: cisco_asa_ssh }
+      - {name: Palo Alto, slug: palo, driver: paloalto_panos }
+      - {name: BIG-IP F5, slug: f5, driver: f5_tmsh_ssh }
+
+
+    # DVC_TYPE: Predefined in yaml files that follow community library format (stored in device_types directory)
+    device_type:
+      - AIR-AP2802I-e-K9.yaml
+      - AIR-CT5520-K9.yaml
+      - ASA5506-X.yaml
+      - ASR1001.yaml
+      - C9300-48P.yaml
+      - C9500-16X.yaml
+      - N9K-C9332C.yaml
+      - N9K-C93180YC-FX.yaml
+      - WS-C3650-48FS-S.yaml
+      - WS-C6509-E.yml
+
+  - name: Generic
+    descr: All patch panels and ISP handoffs
+    device_type:
+      - PP-Copper-24P-1U.yaml
+      - PP-Copper-48P-2U.yaml
+      - PP-Fibre-24P-1U.yaml
+      - PP-ISP-12P-1U.yaml
+
+
+# DVC_ROLE: Roles of devices. slug, colour, descr and vm_role are optional. By default VMs can be assigned to a device_role, to change this add 'vm_role: False'
+device_role:
+  - {name: Patch Panel, slug: pp, color: c0c0c0,  vm_role: False}
+  - {name: ISP handoff, color: f44336, vm_role: False}
+  - {name: Core Data Centre, slug: core_dc, color: ff9800, descr: High speed connectivity, interconnectivity and aggregation using Layer 3 transport }
+  - {name: Core Campus, color: 4caf50, descr: High speed connectivity, interconnectivity and aggregation using Layer 3 transport }
+  - {name: Access Data Centre, slug: access_dc, color: ffc107, descr: Point in the network where endpoints connect via wired, wireless (L2 and L3) or via remote access }
+  - {name: Access Campus, color: 8bc34a, descr: Point in the network where endpoints connect via wired, wireless (L2 and L3) or via remote access }
+  - {name: WAN, color: 9c27b0, descr: Private connectivity between data centres, campus and private cloud }
+  - {name: WAN Edge, color: 673ab7, descr: Network edge demarcation of interconnectivity with third party providers }
+  - {name: Compute, slug: compute, color: ff66ff, descr: Devices that provide compute }
+  - {name: Storage, slug: storage, color: 795548, descr: Dedicated storage devices (switches, arrays, etc) }
+  - {name: Servers, slug: servers, color: 3f51b5, descr: Servers, be it physical or virtual }

@@ -1,0 +1,71 @@
+# ----------------------------------------------------------------------------
+# ORGANISATION: Tenants, sites, locations (and child locations), racks and rack-roles
+# ----------------------------------------------------------------------------
+# TNT: Each customer is a tenant with its associated sites (optional).
+tenant:
+- name: Evil Corp
+  descr: HQ for spreading evil
+  site:
+  - name: AZ1
+    descr: Azure Region A - uksouth
+    time_zone: Europe/London
+    addr: Microsoft Azure UK South, London, England
+    ASN: 65211
+
+  - name: DC1
+    time_zone: Europe/London
+    addr: Docklands, London
+    ASN: 65102
+    location:
+      - name: DC1 Floor2 Aisle 7
+        rack:
+        - name: DC1-FL2-A7-C184
+          role: network
+        - name: DC1-FL2-A7-C185
+          role: network
+        - name: DC1-FL2-A7-C186
+          role: network
+        - name: DC1-FL2-A7-C187
+          role: network
+
+  - name: Tower Exchange
+    descr: Main office
+    time_zone: Europe/London
+    addr: Exchange Tower, London, E14 9SR
+    ASN: 65213
+    location:
+      - name: T1 FloorGR
+        descr: Ground floor
+        location:
+          - name: MER
+            slug: t1_flgr_mer
+            descr: Ground floor MER
+            rack:
+            - name: T1-FLGR-MER-C01
+              role: network
+            - name: T1-FLGR-MER-C02
+              role: multi-use
+            - name: T1-FLGR-MER-C03
+              role: patching
+              height: 45
+      - name: T1 Floor05
+        descr: Fifth floor
+        location:
+          - name: SER
+            slug: t1_fl05_ser
+            descr: Fifth floor SER
+            rack:
+            - name: ET1-FL05-SER-R01
+              role: network
+            - name: ET1-FL05-SER-R02
+              role: patching
+
+## RACK_ROLE: The role of the rack. Only needed if it is defined under the rack. slug, color, and descr are optional
+rack_role:
+  - {name: patching, slug: patching, color: c0c0c0, descr: Patch frame for linking floors, racks and floor ports}
+  - {name: multi-use, slug: multi_use, color: 4caf50, descr: Racks with equipment that has multiple roles }
+  - {name: network, slug: network, color: f44336, descr: Network equipment}
+  - {name: compute, slug: compute, color: 2196f3, descr: Servers and Storage}
+  - {name: av, slug: av, color: 9c27b0, descr: Audio and Visual equipment}
+  - {name: desktops, slug: desktops, color: ff9800, descr: End user equipment}
+

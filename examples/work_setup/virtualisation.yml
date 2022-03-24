@@ -1,0 +1,25 @@
+# This example shows all the options that are possible to be defined. Mandatory dictionaries must be defined and Optional are at your discretion
+
+# ----------------------------------------------------------------------------
+# Virtualization: Cluster-group, Cluster-type, Cluster
+# ----------------------------------------------------------------------------
+# CLUSTER GROUP: Can be used to add optional grouping, for example region or a client
+cluster_group:                    # Optional - List of groups. Name is mandatory, slug and descr are optional
+  - { name: Azure UK South, slug: az_uksouth, descr: Azure UK South environment }
+# CLTR_TYPE: Cluster Types group based on technology. Clusters are logical groupings of physical resources (physical hosts) within which VMs run
+cluster_type:
+  - name: Azure
+    site: AZ1
+    group: Azure UK South
+    # CLTR: List of clusters of this cluster type
+    cluster:
+    - name: AZ1 - Prod
+      comment: Production environment
+    - name: AZ1 - Non-Prod
+      comment: Non-production environment
+  - name: VMware
+    cluster:
+    - name: DC1 VSphere Cluster1
+      site: DC1
+
+

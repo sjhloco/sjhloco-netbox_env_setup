@@ -1,0 +1,41 @@
+# This example shows all the options that are possible to be defined. Mandatory dictionaries must be defined and Optional are at your discretion
+# ----------------------------------------------------------------------------
+# CIRCUIT: Circuit-type, Provider, Circuit
+# ----------------------------------------------------------------------------
+# CRT_TYPE: Different types that can be associated to circuits. Only name is mandatory, slug and descr are optional
+circuit_type:
+  - { name: Broadband Internet, slug: bband, descr: Fibre broadband }
+  - { name: Wavelength Ethernet, slug: wave_eth, descr: Ethernet over fibre}
+  - { name: Carrier Ethernet, slug: car_eth, descr: Ethernet over copper}
+  - { name: Dedicated Cloud Access, slug: dca, descr: Dedicated circuit for a cloud provider }
+  - { name: Direct Internet Access, slug: dia, descr: Direct Internet access }
+  - { name: Fiber Channel, slug: fib_chnl, descr: Fiber Channel for storage }
+
+# PROVIDER: Supplier whom provides some form of connectivity
+provider:
+- name: Level3
+  asn: 4567
+  portal_url: https://myportal.level3.net
+  comments: Log tickets via the portal, if no response in an hour phone NOC
+  # CRT: List of this providers circuits
+  circuit:
+    - cid: DIA/01234567
+      type: Direct Internet Access
+      descr: DC1 DIA primary
+      commit_rate: 1000000
+    - cid: Ethernet Direct/0234567
+      type: Carrier Ethernet
+      descr: TE > DC1
+      commit_rate: 100000
+      comments: Comes in through shared comms room on ground floor
+
+- name: Centurylink
+  asn: 1234
+  portal_url: https://century.net/sign-in
+  comments: Log tickets via the portal
+  # CRT: List of this providers circuits
+  circuit:
+    - cid: DIA/9876543
+      type: Direct Internet Access
+      descr: DC1 DIA secondary
+      commit_rate: 100000
