@@ -14,7 +14,7 @@ From the YAML input files *Data-Models* (per-menu) are built and fed into the AP
 
 Each NetBox menu is represented by a separate data-model class (from ***dm.py***) that is instantiated using dictionaries from the input file to create a list of dictionaries for each of the objects under that NetBox menu. These dictionaries are passed through the *engine* class (from ***netbox.py***) which hold all the methods that interact with NetBox to check object existence and perform object creation.
 
-All data-model classes are built in the same format consisting of *cr_xxx* methods to create object data-models and a *create_xxx* method to run all the *cr_xxx* methods and return the complete data-model. Below is an example of how *Organisation* objects are created by first instantiating the class using input file dictionaries (*Organisation(xx)*), creating the data-model (*org.create(xx)*) and finally checking for and creating the objects (*nbox.engine(xx)*). A Friendly name (for stdout message), path of api call, filter (to check if object already exists) and data-model are passed into the engine.
+All data-model classes are built in the same format consisting of *cr_xxx* methods to create object data-models and a *create_xxx* method to run all the *cr_xxx* methods and return the complete data-model. Below is an example of how *Organisation* objects are created by first instantiating the class using input friendly name (for stdout message), path of api call, filter (to check if object already exists) and data-model are passed into the engine.
 
 ``` python
 org = Organisation(my_vars["tenant"], my_vars["rack_role"])
@@ -30,13 +30,14 @@ nbox.engine("Rack", "dcim.racks", "name", org_dict["rack"])
 
 ## Input data
 
-The input data can be defined in the one file or split over multiple YAML files (*.yml* and *.yaml*) of any name with the script loading all YAML files in the directory. Because of the hierarchical structure of the YAML file the mandatory dictionary elements will still be required in the file even if those objects are not being created by this script. For example, to create a rack the YAML file needs the tenant, site and location. These 2 example setups to show how the files are structured.
+The input data can be defined in the one file or split over multiple YAML files (*.yml* and *.yaml*) of any name with the script loading only YAML files in the directory. Because of the hierarchical structure of the YAML file the mandatory dictionary elements will still be required in the file even if those objects are not being created by this script. For example, to create a rack the YAML file needs the tenant, site and location. There are a few example setups in the examples directory to show how the files are structured.
 
-**full_example:** *An example setup with all the available options defined*\
-**simple_example1:** *A more streamlined example with just the bare minimum options defined*
-**simple_example2:** *Same as last example but VLANs are under a site rather than a VLAN group*
+**full:** *An example setup with all the available options defined*\
+**simple1:** *A more streamlined example with just the bare minimum options defined*\
+**simple2:** *Same as last example but VLANs are under a site rather than a VLAN group*
+**work_setup:** *Structured more for a corporate environment in terms of sites and the roles within IPAM*
 
-For most options the slug is optional and if not defined will be automatically generated from the name replacing any whitespaces with _. Make sure to set the slug if you have multiple objects with the same name.
+For most options the slug is optional and if not defined will be automatically generated from the name replacing any white-spaces with _. Make sure to set the slug if you have multiple objects with the same name.
 
 ### Organisation - *Tenants, Sites, Locations, Racks, Rack-roles*
 
@@ -67,10 +68,11 @@ The device-types are built from pre-defined YAML files that can be downloaded fr
 
 ### IPAM - *RIR, Aggregates, Prefix/VLAN roles, VLAN groups, VLANs, VRFs, Prefixes*
 
-Prefix/VLAN roles are at the top of the IPAM hierarchy grouping together VLANs and prefixes. VLAN-groups, VLANs, VRFs and prefixes are all in some way related to sites and tenants so are defined under the site with the sites tenant automatically associated (can override tenant on a per-VLAN group, VLAN, VRF or prefix basis).
+Prefix/VLAN roles are at the top of the IPAM hierarchy grouping together VLANs and prefixes. VLAN-groups, VLANs, VRFs and prefixes are all in some way related to sites and tenants so are defined under the site with the sites tenant automatically associated or overridden on a per-VLAN group, VLAN, VRF or prefix basis.
 
-- A Prefix/VLAN role, VRF or VLAN group can be used in the file multiple times with the attributes of the first occurrence (description, RT, RD, etc) taken. The use case for this is if you used the same VLAN group or VRF in differing Prefix/VLAN roles.
-- VRFs and prefixes can be defined under the role (non-VLAN environments like clouds) or the VLAN group (to associate prefixes with VLANs). RDs are what make VRFs with the same name unique.
+- A Prefix/VLAN role can only be used once in the file, it holds all VRFs and VLANs to be added beneath it.
+- A VRF or VLAN group can be used multiple times under differing prefix/VLAN roles with the attributes of the first occurrence (description, RT, RD, etc) taken.
+- VRFs (and prefixes) can be defined under the role (non-VLAN environments like clouds) or the VLAN group (to associate prefixes with VLANs). RDs are what make VRFs with the same name unique.
 - VLANs can be grouped under a VLAN group or directly under the site. If you deploy them under the site NetBox does not enforce VLAN uniqueness however the script will not redeploy a VLAN if it already exists in that site. I prefer to use VLAN groups as they enforce uniqueness and provide a better view of unused VLANs.
 
 | Object   | Description          | Mandatory | Optional |
@@ -87,7 +89,7 @@ Prefix/VLAN roles are at the top of the IPAM hierarchy grouping together VLANs a
 | role.site.vrf | VRFs whose prefixes aren't associated to VLANs or are associated to site VLANs | name, ***prefix*** | descr, tags, tenant, rd, import_rt, export_rt, unique
 | role.site.vrf.prefix | List of prefixes within this VRF | pfx | descr, tags, tenant, pool
 
-Using *Null* as the VRF name will add the prefixes to the NetBox *Global* VRF. Using this in conjunction with the prefix *container* status allows for prefixes from differing VRFs to be seen as child prefixes under this parent prefix. *Null* can also be used for the site to associate the prefixes with no particular site. By default all prefixes are not a pool unless specifically set.
+Using *Null* as the VRF name will add the prefixes to the NetBox *Global* VRF. Using this in conjunction with a prefix status of *container*  allows for prefixes from differing VRFs to be seen as child prefixes under this parent prefix. *Null* can also be used for the site to associate the prefixes with no particular site. By default all prefixes are not a pool unless specifically set as one.
 
 ### Provider/ Circuit -  *Circuit-type, Provider, Circuit*
 
@@ -111,7 +113,7 @@ Clusters are groupings of resources which VMs run within. Cluster-groups and typ
 
 ### Contacts - *Contact-role, Contact-group, Contact Assignment*
 
-Contacts are actually in the organisation menu but are defined separately as they can be assigned to a tenant, site, location, rack, manufacturer, clustergroup, cluster, provider or circuit (in GUI you can also assign Device, PowerPanel, Region, SiteGroup, and VirtualMachine).
+Contacts are actually in the organisation menu but are defined separately as they can be assigned to a tenant, site, location, rack, manufacturer, cluster-group, cluster, provider or circuit (in GUI you can also assign Device, PowerPanel, Region, SiteGroup, and VirtualMachine).
 
 | Object   | Description          | Mandatory | Optional |
 | -------- | -------------------- | --------- | ---------|
