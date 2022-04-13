@@ -1,0 +1,13 @@
+manufacturer: WD
+model: MyCloud EX2 Ultra
+slug: wd_mycloud
+part_number: MyCloud EX2 Ultra
+u_height: 1
+is_full_depth: False
+power-ports:
+  - name: PS1
+    type: ita-g     # uk 3 pin
+interfaces:
+  - name: egiga0
+    type: 1000base-t
+    mgmt_only: true

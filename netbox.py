@@ -70,7 +70,9 @@ class Nbox:
                         try:
                             obj_exist_name.append(each_obj_dm[obj_fltr])
                         except:
-                            obj_exist_name.append(each_obj_dm.get("obj_fltr", ""))
+                            obj_exist_name.append(
+                                each_obj_dm.get(each_obj_dm["obj_fltr"], "")
+                            )
             # FLTR: For odd excpetion where objects not unique uses the filter method
             except:
                 obj_result = list(operator.attrgetter(api_attr)(self.nb).filter(**fltr))
