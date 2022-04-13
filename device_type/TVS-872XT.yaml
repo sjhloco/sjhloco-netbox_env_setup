@@ -8,16 +8,16 @@ power-ports:
   - name: PS1
     type: iec-60320-c16     # kettle plug
 interfaces:
-  - name: Adaptor1
+  - name: Adapter1
     type: 10gbase-t
     mgmt_only: True
-  - name: Adaptor2
+  - name: Adapter2
     type: 1000base-t
     mgmt_only: false
-  - name: Adaptor3
+  - name: Adapter3
     type: 1000base-t
     mgmt_only: false
-  - name: Adaptor4
+  - name: Adapter4
     type: 10gbase-t
     mgmt_only: false
   - name: Thunderbolt1
