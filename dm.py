@@ -488,19 +488,23 @@ class Ipam:
                     for each_vrf in each_site["vrf"]:
                         vrf_tnt = each_vrf.get("tenant", tnt)
                         self.vrf.append(self.cr_vrf(vrf_tnt, each_vrf))
-                        # 4i. PREFIX: Creates per-vrf Prefix Dictionary
-                        for each_pfx in each_vrf["prefix"]:
-                            self.pfx.append(
-                                self.cr_pfx(
-                                    each_role["name"],
-                                    each_site["name"],
-                                    vrf_tnt,
-                                    None,
-                                    each_vrf["name"],
-                                    each_vrf.get("rd", "null"),
-                                    each_pfx,
+                        # 4i. PREFIX: Creates per-vrf Prefix Dictionary, exist if a prefix has no entries ()
+                        if each_vrf["prefix"] == None:
+                            print(f"⚠️  Prefix: VRF '{each_vrf['name']}' has an empty prefix dictionary, it must be a list of prefix dictionaries or an empty list")
+                            exit()
+                        else:
+                            for each_pfx in each_vrf["prefix"]:
+                                self.pfx.append(
+                                    self.cr_pfx(
+                                        each_role["name"],
+                                        each_site["name"],
+                                        vrf_tnt,
+                                        None,
+                                        each_vrf["name"],
+                                        each_vrf.get("rd", "null"),
+                                        each_pfx,
+                                    )
                                 )
-                            )
 
         # 4j. The Data Models returned to the main method that are used to create the objects
         return dict(
