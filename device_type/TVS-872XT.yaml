@@ -10,7 +10,6 @@ power-ports:
 interfaces:
   - name: Adapter1
     type: 10gbase-t
-    mgmt_only: True
   - name: Adapter2
     type: 1000base-t
     mgmt_only: false
@@ -20,9 +19,9 @@ interfaces:
   - name: Adapter4
     type: 10gbase-t
     mgmt_only: false
-  - name: Thunderbolt1
+  - name: Thunderbolt slot1
     type: other
     mgmt_only: false
-  - name: Thunderbolt2
+  - name: Thunderbolt slot1
     type: other
     mgmt_only: false
