@@ -21,6 +21,6 @@ power-ports:
   - name: PS6
     type: iec-60320-c16
 interfaces:
-  - name: Ethernet0/0
+  - name: Ethernet0
     type: 100base-tx
-    mgmt_only: false
+    mgmt_only: true
