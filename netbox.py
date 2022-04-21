@@ -78,9 +78,10 @@ class Nbox:
                 for each_rslt in obj_result:
                     # GBL_VRF_PFX: To differentiate between prefixes in null and in VRFs
                     if api_attr == "ipam.prefixes":
-                        if each_rslt["vrf"] == fltr["vrf_id"]:
+                        # breakpoint()
+                        if each_rslt["vrf"] == fltr.get("vrf_id", fltr.get("vrf")):
                             obj_exist_name.append(each_obj_dm[obj_fltr])
-                        elif each_rslt["vrf"]["id"] == fltr["vrf_id"]:
+                        elif each_rslt["vrf"]["id"] == fltr.get("vrf_id", fltr.get("vrf")):
                             obj_exist_name.append(each_obj_dm[obj_fltr])
 
         return dict(notexist_dm=obj_notexist_dm, exist_name=obj_exist_name)
