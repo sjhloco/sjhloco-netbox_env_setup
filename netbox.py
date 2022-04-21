@@ -10,7 +10,7 @@ import ipdb
 from collections import defaultdict
 import urllib3
 
-urllib3.disbale_warnings()
+urllib3.disable_warnings()
 
 
 # ----------------------------------------------------------------------------
