@@ -132,7 +132,7 @@ python -m venv ~/venv/nbox/
 source ~/venv/nbox/bin/activate
 ```
 
-Install the required packages, it uses *pynetbox 6.4.1* as a [bug](https://github.com/netbox-community/pynetbox/issues/447) with later versions breaks *nb.ipam.vlans.get()*
+Install the required packages.
 
 ```bash
 pip install -r requirements.txt

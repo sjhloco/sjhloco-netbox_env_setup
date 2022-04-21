@@ -30,7 +30,7 @@ pure-eval==0.2.2
 py==1.11.0
 pyaml==21.10.1
 Pygments==2.11.2
-pynetbox==6.4.1
+pynetbox==6.6.2
 pyparsing==3.0.7
 pytest==7.1.1
 PyYAML==6.0
