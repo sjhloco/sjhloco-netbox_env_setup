@@ -138,7 +138,7 @@ Install the required packages, it uses *pynetbox 6.4.1* as a [bug](https://githu
 pip install -r requirements.txt
 ```
 
-The first section of the script holds customisable values for the default base directory and folder name (used if not defined at run time), device-type template directory and SSL cert location (if using HTTPS with a self-signed certificate).
+The first section of the script holds customisable values for the default base directory and folder name (used if not defined at run time), device-type template directory, disabling SSL verification and SSL cert location (if using HTTPS with a self-signed certificate).
 
 ```bash
 dvc_type_dir = os.path.join(os.getcwd(), "device_type")
@@ -147,6 +147,7 @@ input_dir = "full_example"
 
 netbox_url = config.netbox_url
 api_token = config.api_token
+ssl = False
 os.environ['REQUESTS_CA_BUNDLE'] = '/Users/user1/Documents/nbox_py_scripts/myCA.pem'
 ```
 

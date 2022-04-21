@@ -49,10 +49,9 @@ base_dir = os.getcwd()
 netbox_url = config.netbox_url
 api_token = config.api_token
 
-# If using Self-signed cert must have been signed by a CA (can all be done on same box in opnessl) and this points to that CA cert
-# os.environ["REQUESTS_CA_BUNDLE"] = os.path.expanduser(
-#     "~/Documents/Coding/Netbox/nbox_py_scripts/myCA.pem"
-# )
+ssl = False
+# If using Self-signed cert rather than disbaling SSL verification (nb.http_session.verify = False) can specify the CA cert
+# os.environ['REQUESTS_CA_BUNDLE'] = os.path.expanduser('~/Documents/Coding/Netbox/nbox_py_scripts/myCA.pem')
 
 
 # ----------------------------------------------------------------------------
@@ -167,7 +166,9 @@ def main():
     my_vars = arg_vars.input_val(input_dir, args)
     # Initialise Netbox class used to run Netbox API calls
     tag_exists, tag_created, rt_exists, rt_created = ([] for i in range(4))
-    nbox = Nbox(netbox_url, api_token, tag_exists, tag_created, rt_exists, rt_created)
+    nbox = Nbox(
+        netbox_url, api_token, ssl, tag_exists, tag_created, rt_exists, rt_created
+    )
     # Used to run all object creation classes if no flags input
     flag_all = False
     for flag_bool in args.values():

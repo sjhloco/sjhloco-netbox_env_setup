@@ -44,7 +44,7 @@ def load_vars():
 @pytest.fixture(scope="class")
 def load_nbox():
     global nbox, nb, tnt2, cnt_usr, dvc_type, dvc_type1, mftr, vlan, vl_grp, vrf, vrf_rd, pfx, cnt_role, contact, site
-    nbox = Nbox(netbox_url, token, [], [], [], [])
+    nbox = Nbox(netbox_url, token, False, [], [], [], [])
     nb = pynetbox.api(url=netbox_url, token=token)
 
     # Creates nbox test objects

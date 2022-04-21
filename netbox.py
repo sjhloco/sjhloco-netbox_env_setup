@@ -8,13 +8,10 @@ from rich.console import Console
 from rich.theme import Theme
 import ipdb
 from collections import defaultdict
+import urllib3
 
+urllib3.disbale_warnings()
 
-# Used by all object creations so have to be created outside of classes and outside main() or is missing for pytest
-# global tag_exists, tag_created
-# global rt_exists, rt_created
-# tag_exists, tag_created = ([] for i in range(2))
-# rt_exists, rt_created = ([] for i in range(2))
 
 # ----------------------------------------------------------------------------
 # INZT_LOAD: Opens netbox connection and loads the variable file
@@ -24,12 +21,14 @@ class Nbox:
         self,
         netbox_url: str,
         token: str,
+        ssl: bool,
         tag_exists: List,
         tag_created: List,
         rt_exists: List,
         rt_created: List,
     ):
         self.nb = pynetbox.api(url=netbox_url, token=token)
+        self.nb.http_session.verify = ssl
         my_theme = {"repr.ipv4": "none", "repr.number": "none", "repr.call": "none"}
         self.rc = Console(theme=Theme(my_theme))
         self.tag_exists = tag_exists

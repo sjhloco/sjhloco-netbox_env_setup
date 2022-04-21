@@ -232,7 +232,7 @@ class Devices:
             manufacturer=dict(name=mftr),
             model=dev_type_tmpl["model"],
             slug=dev_type_tmpl["slug"],
-            part_number=dev_type_tmpl["part_number"],
+            part_number=dev_type_tmpl.get("part_number", dev_type_tmpl["slug"]),
             u_height=dev_type_tmpl.get("u_height", 1),
             is_full_depth=dev_type_tmpl.get("is_full_depth", True),
             interface=intf,
@@ -490,7 +490,9 @@ class Ipam:
                         self.vrf.append(self.cr_vrf(vrf_tnt, each_vrf))
                         # 4i. PREFIX: Creates per-vrf Prefix Dictionary, exist if a prefix has no entries ()
                         if each_vrf["prefix"] == None:
-                            print(f"⚠️  Prefix: VRF '{each_vrf['name']}' has an empty prefix dictionary, it must be a list of prefix dictionaries or an empty list")
+                            print(
+                                f"⚠️  Prefix: VRF '{each_vrf['name']}' has an empty prefix dictionary, it must be a list of prefix dictionaries or an empty list"
+                            )
                             exit()
                         else:
                             for each_pfx in each_vrf["prefix"]:
