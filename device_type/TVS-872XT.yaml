@@ -22,6 +22,6 @@ interfaces:
   - name: Thunderbolt slot1
     type: other
     mgmt_only: false
-  - name: Thunderbolt slot1
+  - name: Thunderbolt slot2
     type: other
     mgmt_only: false
