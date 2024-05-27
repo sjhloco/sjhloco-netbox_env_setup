@@ -127,7 +127,7 @@ Contacts are actually in the organisation menu but are defined separately as the
 Clone the repository and create a virtual environment.
 
 ```css
-git clone https://github.com/sjhloco/netbox_env_setup.git
+git clone https://github.com/sjhloco/sjhloco-netbox_env_setup.git
 python -m venv ~/venv/nbox/
 source ~/venv/nbox/bin/activate
 ```
@@ -135,6 +135,7 @@ source ~/venv/nbox/bin/activate
 Install the required packages.
 
 ```bash
+cd sjhloco-netbox_env_setup
 pip install -r requirements.txt
 ```
 
