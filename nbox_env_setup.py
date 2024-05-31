@@ -50,6 +50,7 @@ netbox_url = config.netbox_url
 api_token = config.api_token
 
 ssl = False
+# ssl = True
 # If using Self-signed cert rather than disbaling SSL verification (nb.http_session.verify = False) can specify the CA cert
 # os.environ['REQUESTS_CA_BUNDLE'] = os.path.expanduser('~/Documents/Coding/Netbox/nbox_py_scripts/myCA.pem')
 

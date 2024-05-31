@@ -1,0 +1,15 @@
+---
+manufacturer: Victron
+model: Cerbo GX
+slug: teltonika-rut950
+u_height: 1
+is_full_depth: false
+power-ports:
+  - name: PS0
+    type: dc-terminal
+    maximum_draw: 5
+interfaces:
+  - name: eth
+    type: 1000base-t
+  - name: wireless
+    type: ieee802.11ac

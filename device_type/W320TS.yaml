@@ -1,0 +1,14 @@
+manufacturer: Avtex
+model: W320TS
+slug: w320ts
+part_number: w320TS
+u_height: 1
+is_full_depth: False
+power-ports:
+  - name: PSU
+    type: dc-terminal
+interfaces:
+  - name: eth
+    type: 1000base-t
+  - name: wireless
+    type: ieee802.11ac
