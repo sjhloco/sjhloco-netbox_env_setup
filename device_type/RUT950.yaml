@@ -9,7 +9,9 @@ power-ports:
     type: dc-terminal
     maximum_draw: 7
 interfaces:
-  - name: mob1s1a1
+  - name: sim1
+    type: lte
+  - name: sim2
     type: lte
   - name: wan
     type: 100base-tx
